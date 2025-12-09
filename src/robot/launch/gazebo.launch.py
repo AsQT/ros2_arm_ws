@@ -45,11 +45,6 @@ def generate_launch_description():
         package='robot_state_publisher', executable='robot_state_publisher',
         parameters=[{'robot_description': robot_description, 'use_sim_time': True}], output="screen"
     )
-    
-    joint_state_publisher = Node(
-        package='joint_state_publisher', executable='joint_state_publisher',
-        parameters=[{'use_sim_time': True}], output="screen"
-    )
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
@@ -94,6 +89,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         gz_resource_path, model_arg, world_arg,
-        gazebo, bridge, robot_state_publisher, joint_state_publisher,
+        gazebo, bridge, 
+        robot_state_publisher, 
         spawn_entity, start_controllers
     ])

@@ -1,24 +1,15 @@
-moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
-
+# MoveIt uses this to talk to the controller
 moveit_simple_controller_manager:
   controller_names:
-    - gripper_controller
     - arm_controller
+    - gripper_controller
 
-  gripper_controller:
-    action_ns: follow_joint_trajectory
-    type: FollowJointTrajectory
-    default: true
-    allowed_start_tolerance: 0.1
-    joints:
-      - joint_gl
-      - joint_gr
-
+  # --- PHẦN SỬA: THỤT VÀO 2 DẤU CÁCH ---
+  # Để nó nằm bên trong moveit_simple_controller_manager
   arm_controller:
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: true
-    allowed_start_tolerance: 0.2  # <--- SỬA TỪ 0.01 THÀNH 0.2 (Đừng để thấp hơn)
     joints:
       - joint_1
       - joint_2
@@ -26,3 +17,11 @@ moveit_simple_controller_manager:
       - joint_4
       - joint_5
       - joint_6
+
+  gripper_controller:
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - joint_gl
+      - joint_gr
