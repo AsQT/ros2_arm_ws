@@ -11,5 +11,7 @@ ros2 run stm32_bridge stm32_joint_sender // cam TTL to USB chon COM PORT tuong u
 Terminal 3: Chay teminal doc du lieu (thay cho stm32 mainboard)
 
 -------------------------------------------
-
+xóa các mục git tracking cũ
+git rm -r --cached build install log
+git rm --cached final_calc_acceleration.pycũ
 
