@@ -1,91 +1,119 @@
 import os
-from os import pathsep
-from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable, RegisterEventHandler
-from launch.event_handlers import OnProcessExit
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable, RegisterEventHandler
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
-from launch_ros.substitutions import FindPackageShare 
+from launch_ros.substitutions import FindPackageShare
+from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
-    package_name = 'robot_description' 
-    pkg_share = get_package_share_directory(package_name)
-
-    default_model_path = PathJoinSubstitution([
-        FindPackageShare("robot_description"), "urdf", "robot.urdf.xacro"
-    ])
+    # 1. Khai báo đường dẫn
+    pkg_description = get_package_share_directory('robot_description')
+    pkg_moveit = get_package_share_directory('robot_description_moveit')
+    ros_gz_sim_pkg = get_package_share_directory('ros_gz_sim')
     
-    model_arg = DeclareLaunchArgument(name='model', default_value=default_model_path)
-    world_arg = DeclareLaunchArgument(name='world', default_value='arm_on_the_table.sdf')
-    world_path = PathJoinSubstitution([pkg_share, 'worlds', LaunchConfiguration('world')])
+    # --- KHẮC PHỤC CHÍNH: Lấy đường dẫn tuyệt đối (String) ---
+    # Thay vì dùng PathJoinSubstitution (dễ gây lỗi khi pass qua spawner), ta dùng os.path.join
+    ros2_controllers_path = os.path.join(pkg_moveit, "config", "ros2_controllers.yaml")
 
-    user_home = str(Path.home())
-    custom_model_path = os.path.join(user_home, 'aws_robomaker_models', 'models')
+    # File World
+    world_file = os.path.join(pkg_description, "worlds", "arm_on_the_table.sdf")
+
+    # 2. Thiết lập biến môi trường
+    install_dir = os.path.dirname(pkg_description) 
     gz_resource_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
-        value=[os.path.join(pkg_share, 'worlds'), pathsep, str(os.path.dirname(pkg_share)), pathsep, custom_model_path]
+        value=install_dir
     )
 
-    # --- SỬA 2: THÊM use_sim:=true ĐỂ BẬT PLUGIN GAZEBO ---
-    robot_description = ParameterValue(
-        Command(['xacro ', LaunchConfiguration('model'), ' use_sim:=true']),
-        value_type=str
+    # 3. Xử lý Robot Description (XACRO)
+    xacro_file = os.path.join(pkg_description, "urdf", "robot.urdf.xacro")
+    robot_description_content = Command([
+        FindExecutable(name="xacro"), " ",
+        xacro_file,
+        " use_sim:=true", 
+        " initial_positions_file:=", 
+        os.path.join(pkg_moveit, "config", "initial_positions.yaml")
+    ])
+    
+    robot_description = {"robot_description": robot_description_content}
+
+    # 4. Node Robot State Publisher
+    node_robot_state_publisher = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        output="screen",
+        parameters=[robot_description, {"use_sim_time": True}],
     )
 
-    robot_state_publisher = Node(
-        package='robot_state_publisher', executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description, 'use_sim_time': True}], output="screen"
-    )
-
+    # 5. Khởi động Gazebo
     gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
-        launch_arguments={'gz_args': ['-r ', world_path]}.items()
+        PythonLaunchDescriptionSource(
+            os.path.join(ros_gz_sim_pkg, 'launch', 'gz_sim.launch.py')
+        ),
+        launch_arguments={'gz_args': f'-r {world_file}'}.items(),
     )
 
-    # --- SỬA 3: XOAY ROBOT ĐỨNG DẬY (-P -1.57) ---
+    # 6. Spawn Robot
     spawn_entity = Node(
-        package='ros_gz_sim', executable='create',
+        package='ros_gz_sim',
+        executable='create',
+        arguments=['-topic', 'robot_description',
+                   '-name', 'robot',
+                   '-x', '0.0', '-y', '0.0', '-z', '1.02'], 
+        output='screen',
+    )
+
+    # 7. Bridge
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
         arguments=[
-            '-name', 'robot',
-            '-topic', 'robot_description',
-            '-x', '-0.4', '-y', '0.0', '-z', '1.05',
-            '-R', '0.0', '-P', '0.0', '-Y', '0.0',
-            '-J', 'joint_2', '0.0',  # Gài sẵn khớp 2 ngẩng lên
+            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+            '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
         ],
         output='screen'
     )
 
-    bridge = Node(
-        package='ros_gz_bridge', executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock', '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model'],
-        output='screen'
+    # 8. Spawn Controllers (ĐÃ THÊM LẠI --param-file VỚI ĐƯỜNG DẪN CHUẨN)
+    # Bây giờ spawner sẽ chịu trách nhiệm nạp cấu hình, không phụ thuộc vào plugin Gazebo nữa
+    
+    spawn_jsb = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster", "--param-file", ros2_controllers_path],
+        output="screen",
     )
 
-    joint_state_broadcaster = Node(
-        package="controller_manager", executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+    spawn_arm = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arm_controller", "--param-file", ros2_controllers_path],
+        output="screen",
     )
 
-    robot_controller_spawner = Node(
-        package="controller_manager", executable="spawner",
-        arguments=["arm_controller", "--controller-manager", "/controller_manager"],
+    spawn_gripper = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_controller", "--param-file", ros2_controllers_path],
+        output="screen",
     )
 
-    start_controllers = RegisterEventHandler(
+    # Nhóm Controller
+    controller_group = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,
-            on_exit=[joint_state_broadcaster, robot_controller_spawner],
+            on_exit=[spawn_jsb, spawn_arm, spawn_gripper],
         )
     )
 
     return LaunchDescription([
-        gz_resource_path, model_arg, world_arg,
-        gazebo, bridge, 
-        robot_state_publisher, 
-        spawn_entity, start_controllers
+        gz_resource_path,
+        node_robot_state_publisher,
+        gazebo,
+        spawn_entity,
+        bridge,
+        controller_group
     ])
