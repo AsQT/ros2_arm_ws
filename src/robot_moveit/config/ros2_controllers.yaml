@@ -2,19 +2,27 @@ controller_manager:
   ros__parameters:
     update_rate: 100
 
-    joint_state_broadcaster:
-      type: joint_state_broadcaster/JointStateBroadcaster
+    gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
 
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    gripper_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
 
-joint_state_broadcaster:
+gripper_controller:
   ros__parameters:
-    extra_joints: []
-    interfaces: []
+    joints:
+      - joint_gl
+      - joint_gr
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    interpolate_from_desired_state: true
+    # ĐÃ XÓA KHỐI GAINS VÀ CONSTRAINTS ĐỂ CHẠY GAZEBO THẬT
 
 arm_controller:
   ros__parameters:
@@ -30,29 +38,5 @@ arm_controller:
     state_interfaces:
       - position
       - velocity
-    
-    # Cấu hình chuẩn Jazzy để fix lỗi Time
     interpolate_from_desired_state: true
-    allow_nonzero_velocity_at_trajectory_end: true
-    
-    constraints:
-      goal_time: 0.0
-      stopped_velocity_tolerance: 0.0
-
-gripper_controller:
-  ros__parameters:
-    joints:
-      - joint_gl
-      - joint_gr
-    command_interfaces:
-      - position
-    state_interfaces:
-      - position
-      - velocity
-    
-    interpolate_from_desired_state: true
-    allow_nonzero_velocity_at_trajectory_end: true
-    
-    constraints:
-      goal_time: 0.0
-      stopped_velocity_tolerance: 0.0
+    # ĐÃ XÓA KHỐI GAINS VÀ CONSTRAINTS ĐỂ CHẠY GAZEBO THẬT
