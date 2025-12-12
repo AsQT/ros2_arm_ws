@@ -14,8 +14,7 @@ def generate_launch_description():
     rviz_config_file = os.path.join(pkg_share, "config", "moveit.rviz")
     ros2_controllers_path = os.path.join(pkg_share, "config", "ros2_controllers.yaml")
 
-    # 2. Đọc và TRÍCH XUẤT tham số cho Controller Manager
-    # Chúng ta chỉ lấy phần bên trong ['controller_manager']['ros__parameters']
+    # 2. Đọc và TRÍCH XUẤT tham số cho Controller Manager['controller_manager']['ros__parameters']
     with open(ros2_controllers_path, 'r') as file:
         full_config = yaml.safe_load(file)
         # Sửa lỗi 'Type not defined': Đưa params ra đúng cấp độ node mong muốn
