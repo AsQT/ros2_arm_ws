@@ -2,6 +2,7 @@
 <robot name="robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <!-- World Frame -->
   <link name="world"/>
+  
  <!-- World-Base Joint -->
   <joint name="virtual_joint" type="fixed">
       <parent link="world"/>
@@ -183,7 +184,7 @@
     <child  link="link_4" />
     <axis xyz="0 0 1" />
     <limit
-      lower="-3.1415" upper="3.1415"
+      lower="-1.5707" upper="1.5707"
       effort="1000" velocity="5.0" />
   </joint>
 
@@ -258,7 +259,7 @@
     <child  link="link_6" />
     <axis xyz="0 0 1" />
     <limit
-      lower="-3.1415" upper="3.1415"
+      lower="-1.5707" upper="1.5707"
       effort="1000" velocity="5.0" />
   </joint>
 
@@ -296,7 +297,7 @@
     <child link="gripper_l" />
     <axis xyz="1 0 0" />
     <limit
-      lower="0" upper="0.1"
+      lower="0" upper="0.02"
       effort="50" velocity="0.05" />
   </joint>
 
@@ -335,7 +336,7 @@
     <child link="gripper_r" />
     <axis xyz="1 0 0" />
     <limit
-      lower="0" upper="0.1"
+      lower="0" upper="0.02"
       effort="50" velocity="0.05" />
   </joint>
 

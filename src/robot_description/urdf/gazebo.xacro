@@ -12,7 +12,7 @@
     <link name="camera_link">
         <visual>
             <geometry>
-                <box size="0.05 0.05 0.05"/>
+                <mesh filename="package://robot_description/meshes/astra_cam.stl" />
             </geometry>
             <material name="black">
                 <color rgba="0 0 0 1"/> 
@@ -20,15 +20,15 @@
         </visual>
         <collision>
             <geometry>
-                 <box size="0.05 0.05 0.05"/>
+                <mesh filename="package://robot_description/meshes/astra_cam.stl" />
             </geometry>
         </collision>
     </link>
     
     <joint name="camera_joint" type="fixed">
-        <parent link="base_link"/>
+        <parent link="world"/>
         <child link="camera_link"/>
-        <origin xyz="0.5 0 0.5" rpy="0 0 0"/>
+        <origin xyz="0.8 0 2" rpy="3.1416 0 1.5707"/>
     </joint>
 
 </robot>
