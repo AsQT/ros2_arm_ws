@@ -1,5 +1,4 @@
 # Chạy Moveit hiển thị trong Rviz và execute vào Gazebo
-# File gốc ở pkg robot_moveit
 import os
 from launch                             import LaunchDescription
 from launch.actions                     import IncludeLaunchDescription
