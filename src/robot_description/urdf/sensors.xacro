@@ -64,7 +64,7 @@
       <sensor name="astra_depth" type="depth">
         <always_on>true</always_on>
         <update_rate>30</update_rate>
-        <visualize>false</visualize>
+        <visualize>true</visualize>
         <topic>astra/depth/image_raw</topic>
         <gz_frame_id>${base_link}_optical</gz_frame_id>
         <camera>
