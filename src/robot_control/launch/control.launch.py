@@ -15,6 +15,12 @@ def generate_launch_description():
         description="True neu chay Gazebo, False neu chay Robot that"
     )
     is_sim = LaunchConfiguration("is_sim")
+    use_sim_time_arg = DeclareLaunchArgument(
+        "use_sim_time",
+        default_value="False", # Chúng ta sẽ ghi đè giá trị này khi chạy launch
+        description="Use simulation (Gazebo) clock if true"
+    )
+    use_sim_time = LaunchConfiguration("use_sim_time")
 
     # --- 2. ĐƯỜNG DẪN CONFIG ---
     # Lưu ý: Bạn đang để config controller trong robot_moveit
@@ -37,7 +43,7 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[robot_description, {"use_sim_time": is_sim}],
+        parameters=[robot_description, {"use_sim_time": use_sim_time}],
     )
 
     # --- 5. ROS2 CONTROL NODE (CHỈ CHẠY KHI KHÔNG PHẢI SIM) ---
@@ -82,6 +88,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         is_sim_arg,
+        use_sim_time_arg,
         node_static_tf,
         node_robot_state_publisher,
         node_ros2_control,

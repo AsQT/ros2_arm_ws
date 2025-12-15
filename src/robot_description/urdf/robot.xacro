@@ -251,87 +251,87 @@
   </link>
   <!-- ________________ DEFINE JOINT ________________________________________________________________________ -->
   <!-- World-Base Joint -->
-  <joint    name  ="virtual_joint"    type      ="fixed">
-    <origin xyz   ="0 0 0"            rpy       ="0 0 0"/>
+  <joint    name  ="virtual_joint"         type      ="fixed">
+    <origin xyz   ="0 0 0"                 rpy       ="0 0 0"/>
     <parent link  ="world"/>
     <child  link  ="base_link"/>
   </joint>
-  <joint    name  ="tcp_joint"        type      ="fixed">
-    <origin xyz   ="0 0 0.08"         rpy       ="0 0 0"/> 
+  <joint    name  ="tcp_joint"             type      ="fixed">
+    <origin xyz   ="0 0 0.08"              rpy       ="0 0 0"/> 
     <parent link  ="link_6"/>
     <child  link  ="tcp_link"/>
   </joint>
   <!-- JOINT 1 -->
-  <joint    name  ="joint_1"          type      ="revolute">
-    <origin xyz   ="0 0 0.01"         rpy       ="0 0 0" />
+  <joint    name  ="joint_1"               type      ="revolute">
+    <origin xyz   ="0 0 0.01"              rpy       ="0 0 0" />
     <parent link  ="base_link" />
     <child  link  ="link_1" />
     <axis   xyz   ="0 0 1" />
-    <limit  lower ="-2.0943"          upper     ="2.0943"
-            effort="1000"             velocity  ="5.0" />
+    <limit  lower ="-2.0943"               upper     ="2.0943"
+            effort="1000"                  velocity  ="5.0" />
   </joint>
   <!-- JOINT 2 -->
-  <joint    name  ="joint_2"          type      ="revolute">
-    <origin xyz   ="0.1 0.05 0.24313" rpy       ="${-pi/2} ${-pi/2} 0" />
+  <joint    name  ="joint_2"               type      ="revolute">
+    <origin xyz   ="0.1 0.05 0.24313"      rpy       ="${-pi/2} ${-pi/2} 0" />
     <parent link  ="link_1" />
     <child  link  ="link_2" />
     <axis   xyz   ="0 0 1" />
-    <limit  lower ="-1.5707"          upper     ="2.6179"
-            effort="1000"             velocity  ="5.0" />
+    <limit  lower ="-1.5707"               upper     ="2.6179"
+            effort="1000"                  velocity  ="5.0" />
   </joint>
   <!-- JOINT 3 -->
-  <joint    name  ="joint_3"          type      ="revolute">
-    <origin xyz   ="0.25 0 -0.01"     rpy       ="0 0 ${pi/2}" />
+  <joint    name  ="joint_3"               type      ="revolute">
+    <origin xyz   ="0.25 0 -0.01"          rpy       ="0 0 ${pi/2}" />
     <parent link  ="link_2" />
     <child  link  ="link_3" />
     <axis   xyz   ="0 0 1" />
-    <limit  lower ="-1.5707"          upper     ="1.5707"
-            effort="1000"             velocity  ="5.0" />
+    <limit  lower ="-1.5707"               upper     ="1.5707"
+            effort="1000"                  velocity  ="5.0" />
   </joint>
   <!-- JOINT 4 -->
-  <joint    name  ="joint_4"            type    ="revolute">
-    <origin xyz   ="0.103 -0.09 -0.04"  rpy     ="0 ${pi/2} 0" />
+  <joint    name  ="joint_4"               type    ="revolute">
+    <origin xyz   ="0.103 -0.09 -0.04"     rpy     ="0 ${pi/2} 0" />
     <parent link  ="link_3" />
     <child  link  ="link_4" />
     <axis   xyz   ="0 0 1" />
-    <limit  lower ="-1.5707"          upper     ="1.5707"
-            effort="1000"             velocity  ="5.0" />
+    <limit  lower ="-1.5707"               upper     ="1.5707"
+            effort="1000"                  velocity  ="5.0" />
   </joint>
   <!-- JOINT 5 -->
-  <joint    name  ="joint_5"            type    ="revolute">
-    <origin xyz   ="-0.0134 0 0.12"     rpy     ="${pi} ${-pi/2} ${pi}" />
+  <joint    name  ="joint_5"               type    ="revolute">
+    <origin xyz   ="-0.0134 0 0.12"        rpy     ="${pi} ${-pi/2} ${pi}" />
     <parent link  ="link_4" />
     <child  link  ="link_5" />
     <axis   xyz   ="0 0 1" />
-    <limit  lower ="-1.5707"          upper    ="1.5707"
-            effort="1000"             velocity ="5.0" />
+    <limit  lower ="-1.5707"               upper    ="1.5707"
+            effort="1000"                  velocity ="5.0" />
   </joint>
   <!-- JOINT 6 -->
-  <joint    name  ="joint_6"          type    ="revolute">
-    <origin xyz   ="0.136 0 -0.01483" rpy     ="0 ${-pi/2} ${pi}" />
+  <joint    name  ="joint_6"               type    ="revolute">
+    <origin xyz   ="0.136 0 -0.01483"      rpy     ="0 ${-pi/2} ${pi}" />
     <parent link  ="link_5" />
     <child  link  ="link_6" />
     <axis   xyz   ="0 0 1" />
-    <limit  lower ="-1.5707"          upper     ="1.5707"
-            effort="1000"             velocity  ="5.0" />
+    <limit  lower ="-1.5707"               upper     ="1.5707"
+            effort="1000"                  velocity  ="5.0" />
   </joint>
   <!-- joint_gl -->
-  <joint    name  ="joint_gl"         type      ="prismatic">
-    <origin xyz   ="0.0021 0 0.0668"  rpy       ="0 0 0" />
+  <joint    name  ="joint_gl"              type      ="prismatic">
+    <origin xyz   ="0.0021 0 0.0668"       rpy       ="0 0 0" />
     <parent link  ="link_6" />
     <child  link  ="gripper_l" />
     <axis   xyz   ="1 0 0" />
-    <limit  lower ="0"                upper     ="0.02"
-            effort="50"               velocity  ="0.05" />
+    <limit  lower ="-0.001"                upper     ="0.02"
+            effort="50"                    velocity  ="0.05" />
   </joint>
   <!-- joint_gr -->
-  <joint    name  ="joint_gr"         type      ="prismatic">
-    <origin xyz   ="-0.0021 0 0.0668" rpy       ="0 0 ${pi}" />
+  <joint    name  ="joint_gr"              type      ="prismatic">
+    <origin xyz   ="-0.0021 0 0.0668"      rpy       ="0 0 ${pi}" />
     <parent link  ="link_6" />
     <child  link  ="gripper_r" />
     <axis   xyz   ="1 0 0" />
-    <limit  lower ="0"                upper     ="0.02"
-            effort="50"               velocity  ="0.05" />
+    <limit  lower ="-0.001"                upper     ="0.02"
+            effort="50"                    velocity  ="0.05" />
   </joint>
 
   <gazebo reference="gripper_l">

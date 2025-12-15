@@ -9,12 +9,15 @@ from launch_ros.substitutions import FindPackageShare
 from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
+    # 1. Khai báo đường dẫn
     pkg_description = get_package_share_directory('robot_description')
     pkg_control = get_package_share_directory('robot_control')
     ros_gz_sim_pkg = get_package_share_directory('ros_gz_sim')
     
     world_file = os.path.join(pkg_description, "worlds", "arm_on_the_table.sdf")
     
+    # --- KHẮC PHỤC QUAN TRỌNG: TẠO URDF TRỰC TIẾP TẠI ĐÂY ---
+    # Chúng ta tự chạy xacro ở đây để lấy chuỗi XML, đảm bảo use_sim:=true được bật
     xacro_file = os.path.join(pkg_description, "urdf", "robot.urdf.xacro")
     
     robot_description_content = Command([
@@ -45,43 +48,69 @@ def generate_launch_description():
         arguments=[
             '-string', robot_description_content, 
             '-name', 'robot',
-            '-x', '0.0', 
-            '-y', '0.0', 
-            '-z', '1.02',
+            '-x', '0.0', '-y', '0.0', '-z', '1.02',
             '-allow_renaming', 'true'
         ], 
         output='screen',
     )
 
     # 4. Bridge
-    gz_ros2_bridge = Node(
+    bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
         arguments=[
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+          #  '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
+            '/astra/rgb/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/astra/rgb/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
+            '/astra/depth/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/astra/depth/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
         ],
         output='screen'
     )
 
-    # 5. BẬT CONTROLLER (Sau khi Spawn xong)
-    launch_control = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_control, 'launch', 'control.launch.py')
-        ),
-        launch_arguments={'is_sim': 'True'}.items(),
-    )   
-    
-    start_controllers_callback = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[launch_control],
-        )
+    spawn_jsb = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        parameters=[{'use_sim_time': True}], # Quan trọng: Phải set use_sim_time: True
+        output="screen",
     )
+
+    spawn_arm = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arm_controller", "--controller-manager", "/controller_manager"],
+        parameters=[{'use_sim_time': True}], # Quan trọng: Phải set use_sim_time: True
+        output="screen",
+    )
+
+    spawn_gripper = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_controller", "--controller-manager", "/controller_manager"],
+        parameters=[{'use_sim_time': True}], # Quan trọng: Phải set use_sim_time: True
+        output="screen",
+    )
+
+    node_robot_state_publisher = Node(
+    package='robot_state_publisher',
+    executable='robot_state_publisher',
+    output='screen',
+    parameters=[{
+        'use_sim_time': True,
+        'robot_description': robot_description_content
+    }],
+)
+
 
     return LaunchDescription([
         gz_resource_path,
+        node_robot_state_publisher,
         gazebo,
         spawn_entity,
-        gz_ros2_bridge,
-        start_controllers_callback,
+        bridge,
+        spawn_jsb,
+        spawn_arm,
+        spawn_gripper,
     ])
