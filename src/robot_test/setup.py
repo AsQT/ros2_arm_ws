@@ -23,7 +23,9 @@ setup(
         ],
     },
     entry_points={
-        'console_scripts': [
-        ],
-    },
+    'console_scripts': [
+        'test_bringup = robot_test.test_bringup:main',
+        'test_move = robot_test.test_move:main',
+    ],
+},
 )

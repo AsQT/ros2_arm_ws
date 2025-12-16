@@ -7,58 +7,73 @@ from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.event_handlers import OnProcessExit
+from launch.actions import TimerAction
+
 
 def generate_launch_description():
-    # 1. Khai báo đường dẫn
     pkg_description = get_package_share_directory('robot_description')
-    pkg_control = get_package_share_directory('robot_control')
-    ros_gz_sim_pkg = get_package_share_directory('ros_gz_sim')
-    
-    world_file = os.path.join(pkg_description, "worlds", "arm_on_the_table.sdf")
-    
-    # --- KHẮC PHỤC QUAN TRỌNG: TẠO URDF TRỰC TIẾP TẠI ĐÂY ---
-    # Chúng ta tự chạy xacro ở đây để lấy chuỗi XML, đảm bảo use_sim:=true được bật
-    xacro_file = os.path.join(pkg_description, "urdf", "robot.urdf.xacro")
+    ros_gz_sim_pkg  = get_package_share_directory('ros_gz_sim') 
+    world_file      = os.path.join(pkg_description, "worlds", "arm_on_the_table.sdf")
+    xacro_file      = os.path.join(pkg_description, "urdf", "robot.urdf.xacro")
     
     robot_description_content = Command([
         FindExecutable(name="xacro"), " ",
-        xacro_file, 
-        " use_sim:=true" 
+        xacro_file,   " use_sim:=true" 
     ])
 
-    install_dir = os.path.dirname(pkg_description) 
+    install_dir      = os.path.dirname(pkg_description) 
     gz_resource_path = SetEnvironmentVariable(
-        name='GZ_SIM_RESOURCE_PATH',
-        value=install_dir
+        name         = 'GZ_SIM_RESOURCE_PATH',
+        value        = install_dir
     )
 
-    # 2. Khởi động Gazebo
     gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
+        PythonLaunchDescriptionSource( 
             os.path.join(ros_gz_sim_pkg, 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': f'-r {world_file}'}.items(),
+        launch_arguments = {'gz_args': f'-r {world_file}'}.items(),
     )
 
-    # 3. Spawn Robot vào Gazebo (DÙNG -string THAY VÌ -topic)
-    # Đây là chìa khóa để sửa lỗi robot bị ngã
-    spawn_entity = Node(
-        package='ros_gz_sim',
-        executable='create',
-        arguments=[
+    spawn_entity   =Node(
+        package    ='ros_gz_sim',
+        executable ='create',
+        arguments  =[
             '-string', robot_description_content, 
             '-name', 'robot',
             '-x', '0.0', '-y', '0.0', '-z', '1.02',
             '-allow_renaming', 'true'
         ], 
-        output='screen',
+        output     ='screen',
     )
 
-    # 4. Bridge
-    bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        arguments=[
+    spawn_wood = Node(
+    package    ='robot_description',
+    executable ='wood_blocks.py',
+    output     ='screen',
+    parameters =[
+        {'world': 'default'},
+        {'count': 5},       
+        {'seed' : 0},         
+        {'x_min': 0.35},     
+        {'x_max': 0.65},
+        {'y_min': -0.20},    
+        {'y_max': 0.20},
+        {'z'    : 1.25},         
+        ]
+    )
+
+    spawn_wood_after_robot = RegisterEventHandler(
+        OnProcessExit(
+            target_action      =spawn_entity,
+            on_exit            =[TimerAction(period=1.0, actions=[spawn_wood])]
+        )
+    )
+
+
+    bridge         = Node(
+        package    ='ros_gz_bridge',
+        executable ='parameter_bridge',
+        arguments  =[
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
           #  '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
             '/astra/rgb/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
@@ -66,38 +81,37 @@ def generate_launch_description():
             '/astra/depth/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
             '/astra/depth/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
         ],
-        output='screen'
+        output     ='screen'
     )
 
-    spawn_jsb = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-        parameters=[{'use_sim_time': True}], # Quan trọng: Phải set use_sim_time: True
-        output="screen",
+    spawn_jsb      = Node(
+        package    ="controller_manager",
+        executable ="spawner",
+        arguments  =["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        parameters =[{'use_sim_time': True}],
+        output     ="screen",
     )
 
-    spawn_arm = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["arm_controller", "--controller-manager", "/controller_manager"],
-        parameters=[{'use_sim_time': True}], # Quan trọng: Phải set use_sim_time: True
-        output="screen",
+    spawn_arm      = Node(
+        package    ="controller_manager",
+        executable ="spawner",
+        arguments  =["arm_controller", "--controller-manager", "/controller_manager"],
+        parameters =[{'use_sim_time': True}], 
+        output     ="screen",
     )
 
-    spawn_gripper = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["gripper_controller", "--controller-manager", "/controller_manager"],
-        parameters=[{'use_sim_time': True}], # Quan trọng: Phải set use_sim_time: True
-        output="screen",
+    spawn_gripper   = Node(
+        package     ="controller_manager",
+        executable  ="spawner",
+        arguments   =["gripper_controller", "--controller-manager", "/controller_manager"],
+        parameters  =[{'use_sim_time': True}],
     )
 
     node_robot_state_publisher = Node(
-    package='robot_state_publisher',
-    executable='robot_state_publisher',
-    output='screen',
-    parameters=[{
+    package                    ='robot_state_publisher',
+    executable                 ='robot_state_publisher',
+    output                     ='screen',
+    parameters                 =[{
         'use_sim_time': True,
         'robot_description': robot_description_content
     }],
@@ -113,4 +127,5 @@ def generate_launch_description():
         spawn_jsb,
         spawn_arm,
         spawn_gripper,
+        spawn_wood_after_robot,
     ])

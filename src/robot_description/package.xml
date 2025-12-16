@@ -14,6 +14,9 @@
   <depend>joint_state_publisher_gui</depend>
   <depend>rviz2</depend>
   <depend>xacro</depend>
+  <depend>rclpy</depend>
+  <depend>ros_gz_interfaces</depend>
+
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
