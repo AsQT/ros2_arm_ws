@@ -27,6 +27,7 @@ target_include_directories(robot_hardware_lib PUBLIC
 ament_target_dependencies(robot_hardware_lib
   rclcpp sensor_msgs std_msgs std_srvs
 )
+
 add_executable(robot_hardware_node src/main.cpp)
 target_link_libraries(robot_hardware_node robot_hardware_lib)
 ament_target_dependencies(robot_hardware_node
@@ -41,6 +42,13 @@ install(TARGETS robot_hardware_lib robot_hardware_node
 
 install(DIRECTORY include/
   DESTINATION include
+)
+
+add_executable(hello_node src/hello_node.cpp)
+ament_target_dependencies(hello_node rclcpp std_msgs)
+
+install(TARGETS hello_node
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_package()

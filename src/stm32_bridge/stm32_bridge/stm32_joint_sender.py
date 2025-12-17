@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import rclpy
-from rclpy.node import Node
+from rclpy.node         import Node
 
-from sensor_msgs.msg import JointState
+from sensor_msgs.msg    import JointState
 
 import serial
 import struct
 import threading
 import math
-from serial.tools import list_ports
+from serial.tools       import list_ports
 
 
 # ================= CONFIG =================
@@ -21,15 +21,14 @@ JOINT_NAMES = [
     "joint_3",
     "joint_4",
     "joint_5",
-    "joint_6",
-]
+    "joint_6", ]
 
 DEG_SCALE = 1000  # 1 deg = 1000
 
 # FAS-like protocol
 HEADER = b"\xAA\xCC"
 TAIL   = b"\xAA\xEE"
-CMD_JOINT6 = 0x10   # tùy bạn định nghĩa, miễn STM32 parse đúng
+CMD_JOINT6 = 0x10 
 
 
 # ================= CRC16 (FAS / MODBUS STYLE) =================
@@ -52,10 +51,7 @@ def crc16_modbus(data: bytes) -> int:
 # ================= CHỌN CỔNG COM =================
 
 def choose_serial_port(prompt: str = "Chọn cổng serial", default: str | None = None) -> str:
-    """
-    Liệt kê các cổng serial, cho phép chọn bằng index.
-    Nếu default != None và tồn tại trong list thì Enter = dùng default.
-    """
+
     ports = list(list_ports.comports())
     if not ports:
         print("Không tìm thấy cổng serial nào.")
@@ -93,7 +89,6 @@ class STM32Bridge(Node):
     def __init__(self):
         super().__init__("stm32_joint_sender")
 
-        # ---- ROS params cho port / baud / topic ----
         self.declare_parameter("port", "")
         self.declare_parameter("baud", DEFAULT_BAUD)
         self.declare_parameter("joint_topic", "/joint_states")
@@ -102,7 +97,6 @@ class STM32Bridge(Node):
         baud_param  = self.get_parameter("baud").get_parameter_value().integer_value
         topic_param = self.get_parameter("joint_topic").get_parameter_value().string_value
 
-        # Nếu param port rỗng -> hỏi người dùng chọn cổng
         if port_param:
             port = port_param
             print(f"Dùng cổng từ ROS param: {port}")
@@ -112,7 +106,6 @@ class STM32Bridge(Node):
         baud = baud_param if baud_param > 0 else DEFAULT_BAUD
         self.joint_topic = topic_param or "/joint_states"
 
-        # Open serial
         try:
             self.ser = serial.Serial(port, baud, timeout=0.01)
             self.get_logger().info(f"Open serial: {port} @ {baud}")
@@ -122,10 +115,8 @@ class STM32Bridge(Node):
 
         self.lock = threading.Lock()
 
-        # Lưu giá trị cuối cùng của 6 khớp
         self.last_joints = {name: 0.0 for name in JOINT_NAMES}
 
-        # Subscriber JointState
         self.sub = self.create_subscription(
             JointState,
             self.joint_topic,
@@ -134,9 +125,6 @@ class STM32Bridge(Node):
         )
         self.get_logger().info(f"Subscribed to {self.joint_topic}")
 
-    # -------------------------------------------------
-    # JointState callback: nhận rad, lưu deg, gửi frame
-    # -------------------------------------------------
     def joint_state_cb(self, msg: JointState):
         updated = False
 
@@ -153,15 +141,6 @@ class STM32Bridge(Node):
     # Build frame: FAS-style header / tail / CRC16
     # -------------------------------------------------
     def build_frame(self, joint_dict: dict) -> bytes:
-        """
-        Frame format:
-        [0,1]   : HEADER = 0xAA 0xCC
-        [... ]  : PAYLOAD
-                  byte0 = CMD_JOINT6 (0x10)
-                  byte1..24 = 6 * int32 LE (deg * 1000)
-                  byte25..26 = CRC16 (LSB first) trên PAYLOAD (CMD + 6 int32)
-        [last-1,last] : TAIL = 0xAA 0xEE
-        """
 
         # ---- PAYLOAD: CMD + 6 * int32 ----
         payload = bytearray()
@@ -208,7 +187,7 @@ class STM32Bridge(Node):
         self.get_logger().info(f"TX -> STM32 ({len(frame)} bytes): {log_str}")
 
     # -------------------------------------------------
-    # DEMO: gửi sóng sin 6 khớp cho STM32 (GIỮ LẠI ĐỂ TEST)
+    # DEMO: gửi sóng sin 6 khớp để test
     # -------------------------------------------------
     def run_demo_sender(self):
         t = 0.0
@@ -233,7 +212,6 @@ def main():
     node.get_logger().info("STM32Bridge is running (listening to /joint_states)...")
     try:
         rclpy.spin(node)
-        # Nếu muốn test DEMO sin thay vì joint_states:
         # node.run_demo_sender()
     except KeyboardInterrupt:
         pass

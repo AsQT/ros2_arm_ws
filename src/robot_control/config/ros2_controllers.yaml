@@ -23,15 +23,15 @@ arm_controller:
       - joint_6
     command_interfaces:
       - position
+      - velocity
     state_interfaces:
       - position
       - velocity
     allow_nonzero_velocity_at_trajectory_end: true
 
-    # --- THÊM ĐOẠN NÀY VÀO ---
-    # Nới lỏng dung sai để Controller dễ báo Success hơn
+    # Nới lỏng dung sai để Controller
     constraints:
-      goal_time: 1.0 # Cho phép trễ 2 giây so với dự tính
+      goal_time: 1.0 # Cho phép trễ 1 giây so với dự tính
       stopped_velocity_tolerance: 0.05
       joint_1: {trajectory: 0.2, goal: 0.1}
       joint_2: {trajectory: 0.2, goal: 0.1}

@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Macro defining ros2_control block -->
+  <xacro:macro name   ="robot_ros2_control"
+               params ="name:='robot_system'
+                       initial_positions_file:=''
+                       use_sim:='false'">
+
+    <!-- Load initial joint positions if a file is provided -->
+    <xacro:if value="${initial_positions_file != ''}">
+      <xacro:property
+        name="initial_positions"
+        value="${xacro.load_yaml(initial_positions_file)['initial_positions']}" />
+    </xacro:if>
+
+    <ros2_control name="${name}" type="system">
+
+      <hardware>
+        <xacro:if value="${use_sim}">
+          <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </xacro:if>
+        <xacro:unless value="${use_sim}">
+          <!--_____________ Plugin hardware cũ ______________-->
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+
+          <!--_____________ Plugin hardware mới ______________-->
+          <!--plugin>robot_hardware/RobotSystemHardware</plugin>
+          <param name="port">${port}</param>
+          <param name="baud">${baud}</param-->
+
+        </xacro:unless>
+      </hardware>
+
+      <!-- Joints Interfaces dùng chung cả sim và real -->
+
+      <joint                name="joint_1">
+        <command_interface  name="position"/>
+        <state_interface    name="position"/>
+        <command_interface  name="velocity"/>
+        <state_interface    name="velocity"/>
+      </joint>
+
+      <joint                name="joint_2">
+        <command_interface  name="position"/>
+        <state_interface    name="position"/>
+        <command_interface  name="velocity"/>
+        <state_interface    name="velocity"/>
+      </joint>
+
+      <joint                name="joint_3">
+        <command_interface  name="position"/>
+        <state_interface    name="position"/>
+        <command_interface  name="velocity"/>
+        <state_interface    name="velocity"/>
+      </joint>
+
+       <joint                name="joint_4">
+        <command_interface  name="position"/>
+        <state_interface    name="position"/>
+        <command_interface  name="velocity"/>
+        <state_interface    name="velocity"/>
+      </joint>
+
+      <joint                name="joint_5">
+        <command_interface  name="position"/>
+        <state_interface    name="position"/>
+        <command_interface  name="velocity"/>
+        <state_interface    name="velocity"/>
+      </joint>
+
+      <joint                name="joint_6">
+        <command_interface  name="position"/>
+        <state_interface    name="position"/>
+        <command_interface  name="velocity"/>
+        <state_interface    name="velocity"/>
+      </joint>
+
+      <joint                name="joint_gl">
+        <command_interface  name="position"/>
+        <state_interface    name="position"/>
+        <command_interface  name="velocity"/>
+        <state_interface    name="velocity"/>
+      </joint>
+
+      <joint                name="joint_gr">
+        <command_interface  name="position"/>
+        <state_interface    name="position"/>
+        <command_interface  name="velocity"/>
+        <state_interface    name="velocity"/>
+      </joint>
+
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

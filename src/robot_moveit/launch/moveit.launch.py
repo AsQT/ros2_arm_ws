@@ -1,0 +1,1 @@
+# MoveIt2 config (SRDF, pipelines, controllers)

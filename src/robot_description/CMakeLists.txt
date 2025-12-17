@@ -24,7 +24,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
-  launch/wood_blocks.py
+  launch/random_wood_blocks.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -1,3 +1,4 @@
+# tất cả mô phỏng Gazebo trên robot đều gọi file này
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -9,7 +10,6 @@ from launch_ros.substitutions import FindPackageShare
 from launch.event_handlers import OnProcessExit
 from launch.actions import TimerAction
 
-
 def generate_launch_description():
     pkg_description = get_package_share_directory('robot_description')
     ros_gz_sim_pkg  = get_package_share_directory('ros_gz_sim') 
@@ -17,115 +17,105 @@ def generate_launch_description():
     xacro_file      = os.path.join(pkg_description, "urdf", "robot.urdf.xacro")
     
     robot_description_content = Command([
-        FindExecutable(name="xacro"), " ",
-        xacro_file,   " use_sim:=true" 
-    ])
+                                FindExecutable(name="xacro"),   " ",
+                                xacro_file,                     " use_sim:=true"  ])
 
     install_dir      = os.path.dirname(pkg_description) 
     gz_resource_path = SetEnvironmentVariable(
         name         = 'GZ_SIM_RESOURCE_PATH',
-        value        = install_dir
-    )
-
+        value        = install_dir )
+    #___________________ Thực thi ________________________________________
+    # khởi động gazebo
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource( 
             os.path.join(ros_gz_sim_pkg, 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments = {'gz_args': f'-r {world_file}'}.items(),
-    )
-
-    spawn_entity   =Node(
-        package    ='ros_gz_sim',
-        executable ='create',
-        arguments  =[
-            '-string', robot_description_content, 
-            '-name', 'robot',
-            '-x', '0.0', '-y', '0.0', '-z', '1.02',
-            '-allow_renaming', 'true'
-        ], 
-        output     ='screen',
-    )
-
+        launch_arguments = {'gz_args': f'-r {world_file}'}.items(), )
+    # load mô hình robot vào gazebo
+    spawn_entity    =Node(
+                        package    ='ros_gz_sim',
+                        executable ='create',
+                        arguments  =[
+                                    '-string', robot_description_content, 
+                                    '-name', 'robot',
+                                    '-x', '0.0', 
+                                    '-y', '0.0', 
+                                    '-z', '1.02',
+                                    '-allow_renaming', 'true'], 
+                        output     ='screen', )
+    # load khối gỗ vị trí random vào gazebo
     spawn_wood = Node(
-    package    ='robot_description',
-    executable ='wood_blocks.py',
-    output     ='screen',
-    parameters =[
-        {'world': 'default'},
-        {'count': 5},       
-        {'seed' : 0},         
-        {'x_min': 0.35},     
-        {'x_max': 0.65},
-        {'y_min': -0.20},    
-        {'y_max': 0.20},
-        {'z'    : 1.25},         
-        ]
-    )
+                    package    ='robot_description',
+                    executable ='random_wood_blocks.py',
+                    output     ='screen',
+                    parameters =[
+                                {'world': 'default'},
+                                {'count': 5},       
+                                {'seed' : 0},         
+                                {'x_min': 0.35},     
+                                {'x_max': 0.65},
+                                {'y_min': -0.20},    
+                                {'y_max': 0.20},
+                                {'z'    : 1.25}, ]  )
 
     spawn_wood_after_robot = RegisterEventHandler(
-        OnProcessExit(
-            target_action      =spawn_entity,
-            on_exit            =[TimerAction(period=1.0, actions=[spawn_wood])]
-        )
-    )
+                            OnProcessExit(
+                                target_action   =spawn_entity,
+                                on_exit         =[TimerAction(period    =1.0, 
+                                                              actions   =[spawn_wood])])  )
 
+    bridge  = Node(
+                package    ='ros_gz_bridge',
+                executable ='parameter_bridge',
+                arguments  =[
+                            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+                            '/astra/rgb/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
+                            '/astra/rgb/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
+                            '/astra/depth/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
+                            '/astra/depth/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',],
+                output     ='screen' )
 
-    bridge         = Node(
-        package    ='ros_gz_bridge',
-        executable ='parameter_bridge',
-        arguments  =[
-            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-          #  '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
-            '/astra/rgb/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/astra/rgb/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
-            '/astra/depth/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/astra/depth/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
-        ],
-        output     ='screen'
-    )
+    spawn_jsb   = Node(
+                    package    ="controller_manager",
+                    executable ="spawner",
+                    arguments  =["joint_state_broadcaster", 
+                                 "--controller-manager", 
+                                 "/controller_manager"],
+                    parameters =[{'use_sim_time': True}],
+                    output     ="screen", )
 
-    spawn_jsb      = Node(
-        package    ="controller_manager",
-        executable ="spawner",
-        arguments  =["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-        parameters =[{'use_sim_time': True}],
-        output     ="screen",
-    )
-
-    spawn_arm      = Node(
-        package    ="controller_manager",
-        executable ="spawner",
-        arguments  =["arm_controller", "--controller-manager", "/controller_manager"],
-        parameters =[{'use_sim_time': True}], 
-        output     ="screen",
-    )
+    spawn_arm   = Node(
+                    package    ="controller_manager",
+                    executable ="spawner",
+                    arguments  =["arm_controller", 
+                                "--controller-manager", 
+                                "/controller_manager"],
+                    parameters =[{'use_sim_time': True}], 
+                    output     ="screen", )
 
     spawn_gripper   = Node(
-        package     ="controller_manager",
-        executable  ="spawner",
-        arguments   =["gripper_controller", "--controller-manager", "/controller_manager"],
-        parameters  =[{'use_sim_time': True}],
-    )
+                    package     ="controller_manager",
+                    executable  ="spawner",
+                    arguments   =["gripper_controller", 
+                                "--controller-manager", 
+                                "/controller_manager"],
+                    parameters  =[{'use_sim_time': True}],  )
 
     node_robot_state_publisher = Node(
-    package                    ='robot_state_publisher',
-    executable                 ='robot_state_publisher',
-    output                     ='screen',
-    parameters                 =[{
-        'use_sim_time': True,
-        'robot_description': robot_description_content
-    }],
-)
-
+                                    package     ='robot_state_publisher',
+                                    executable  ='robot_state_publisher',
+                                    output      ='screen',
+                                    parameters  =[{
+                                                'use_sim_time':         True,
+                                                'robot_description':    robot_description_content }], )
 
     return LaunchDescription([
-        gz_resource_path,
-        node_robot_state_publisher,
-        gazebo,
-        spawn_entity,
-        bridge,
-        spawn_jsb,
-        spawn_arm,
-        spawn_gripper,
-        spawn_wood_after_robot,
-    ])
+            gz_resource_path,
+            node_robot_state_publisher,
+            gazebo,
+            spawn_entity,
+            bridge,
+            spawn_jsb,
+            spawn_arm,
+            spawn_gripper,
+            spawn_wood_after_robot,] )

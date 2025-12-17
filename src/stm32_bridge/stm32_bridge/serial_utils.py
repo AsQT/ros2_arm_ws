@@ -3,10 +3,7 @@ import sys
 from serial.tools import list_ports
 
 def choose_serial_port(prompt: str = "Chọn cổng serial", default: str | None = None) -> str:
-    """
-    Liệt kê các cổng serial và cho phép chọn.
-    Nếu default != None và tồn tại trong danh sách, dùng luôn.
-    """
+
     ports = list(list_ports.comports())
 
     if not ports:
@@ -17,7 +14,6 @@ def choose_serial_port(prompt: str = "Chọn cổng serial", default: str | None
     for i, p in enumerate(ports):
         print(f"  [{i}] {p.device}  ({p.description})")
 
-    # Nếu default có trong list thì hỏi có dùng luôn không
     if default and any(p.device == default for p in ports):
         print(f"\nNhấn Enter để dùng mặc định: {default}, hoặc nhập số index khác.")
     else:
