@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<library path="rs485_system_hardware">
+  <class
+      name="rs485_hardware_cpp/Rs485SystemHardware"
+      type="rs485_hardware_cpp::Rs485SystemHardware"
+      base_class_type="hardware_interface::SystemInterface">
+    <description>ros2_control SystemInterface over RS-485 using Rs485Client protocol.</description>
+  </class>
+</library>
