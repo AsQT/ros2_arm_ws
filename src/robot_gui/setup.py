@@ -1,31 +1,25 @@
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
 
-package_name = 'robot_gui'
+package_name = "robot_gui"
 
 setup(
     name=package_name,
-    version='0.0.0',
-    packages=find_packages(exclude=['test']),
+    version="0.0.1",
+    packages=find_packages(),
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml']),
+        ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
+        ("share/" + package_name, ["package.xml"]),
+        ("share/" + package_name + "/launch", ["launch/robot_gui.launch.py"]),
     ],
-    install_requires=['setuptools'],
+    install_requires=["setuptools"],
     zip_safe=True,
-    maintainer='minhquang',
-    maintainer_email='Tranminhquang617@outlook.com.vn',
-    description='TODO: Package description',
-    license='TODO: License declaration',
-    extras_require={
-        'test': [
-            'pytest',
-        ],
-    },
+    maintainer="user",
+    maintainer_email="user@example.com",
+    description="Robot GUI: RS485 hardware + TF + MoveIt planning (QtPy)",
+    license="Apache-2.0",
     entry_points={
-        'console_scripts': [
-            # Dòng quan trọng nhất để chạy lệnh 'ros2 run'
-            'commander_gui = robot_gui.commander_gui:main',
+        "console_scripts": [
+            "robot_gui = robot_gui.app:main",
         ],
     },
 )

@@ -12,21 +12,28 @@ find_package(ament_lint_auto REQUIRED)
 
 ament_lint_auto_find_test_dependencies() 
 
-# --- PHẦN QUAN TRỌNG ĐÃ GỘP LẠI ---
+
 install(DIRECTORY 
   launch
   meshes
   urdf
-  rviz    # Đừng quên thư mục rviz
-  worlds  # Thư mục chứa file world bạn cần
+  rviz   
+  gazebo
   config
+  worlds
   DESTINATION share/${PROJECT_NAME}
 )
 
 install(PROGRAMS
-  launch/random_wood_blocks.py
+  gazebo/random_wood_blocks.py
+  gazebo/wood_blocks_3.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

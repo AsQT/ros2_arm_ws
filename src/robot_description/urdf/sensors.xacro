@@ -26,13 +26,13 @@
       </collision>
     </link>
     <link           name  ="${base_link}_optical"/>
-    <!-- chỉnh lại pose camera tại đây -->
+
     <joint          name  ="${base_link}_joint"         type  ="fixed">
       <parent       link  ="${parent_link}"/>
       <child        link  ="${base_link}"/>
       <origin       xyz   ="0.6 0 1.0" rpy="${pi} 0 ${pi/2}"/>
     </joint>
-    <!-- Chỉnh lại optical frame -->
+
     <joint          name  ="${base_link}_optical_joint" type  ="fixed">
       <parent       link  ="${base_link}"/>
       <child        link  ="${base_link}_optical"/>
@@ -46,7 +46,6 @@
         <update_rate>30</update_rate>
         <visualize>true</visualize>
         <topic>astra/rgb/image_raw</topic>
-        <gz_frame_id>${base_link}_optical</gz_frame_id>
         <camera>
           <image>
             <width>640</width>
@@ -68,7 +67,6 @@
         <update_rate>30</update_rate>
         <visualize>true</visualize>
         <topic>astra/depth/image_raw</topic>
-        <gz_frame_id>${base_link}_optical</gz_frame_id>
         <camera>
           <image>
             <width>640</width>

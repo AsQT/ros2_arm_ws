@@ -17,6 +17,8 @@
   <author email="todo@gmail.com">Authur</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+   <!-- GUI -->
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <exec_depend>moveit_ros_move_group</exec_depend>
   <exec_depend>moveit_kinematics</exec_depend>
@@ -44,6 +46,12 @@
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>warehouse_ros_mongo</exec_depend>
   <exec_depend>xacro</exec_depend>
+  <!-- GUI -->
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
 
 
   <export>
