@@ -9,6 +9,7 @@
 #include "robot_task_manager/action/move_to_pose.hpp"
 #include "robot_task_manager/action/move_to_pose_cartesian.hpp"
 #include "robot_task_manager/action/checker_board.hpp"
+#include "robot_task_manager/action/gripper_move.hpp"
 
 
 class robotTaskManagerClient : public rclcpp::Node
@@ -26,6 +27,9 @@ public:
   using CheckerBoard                    = robot_task_manager::action::CheckerBoard ;
   using CheckerBoardGoalHandle          = rclcpp_action::ClientGoalHandle<CheckerBoard>;
 
+  using GripperMove                     = robot_task_manager::action::GripperMove;
+  using GripperMoveGoalHandle           = rclcpp_action::ClientGoalHandle<GripperMove>;
+
   robotTaskManagerClient()
   : Node("task_manager_client")
   {
@@ -34,6 +38,7 @@ public:
     move_to_pose_client_            = rclcpp_action::create_client<MoveToPose>(this, "move_to_pose");
     move_to_pose_cartesian_client_  = rclcpp_action::create_client<MoveToPoseCartesian>(this, "move_to_pose_cartesian");
     move_checker_board_client_      = rclcpp_action::create_client<CheckerBoard>(this, "checker_board");
+    gripper_move_client_            = rclcpp_action::create_client<GripperMove>(this, "gripper_move");
 
   }
 
@@ -50,6 +55,8 @@ public:
       send_move_to_pose_cartesian();
     } else if (task_name == "checker_board") {
       send_checker_board();
+    } else if (task_name == "gripper_move") {
+      send_gripper_move();
     } else {
       RCLCPP_ERROR(get_logger(), "Unknown task_name: %s", task_name.c_str());
       rclcpp::shutdown();   } }
@@ -59,6 +66,7 @@ private:
   rclcpp_action::Client<MoveToPose>::SharedPtr move_to_pose_client_;
   rclcpp_action::Client<MoveToPoseCartesian>::SharedPtr move_to_pose_cartesian_client_;
   rclcpp_action::Client<CheckerBoard>::SharedPtr move_checker_board_client_;
+  rclcpp_action::Client<GripperMove>::SharedPtr gripper_move_client_;
   /*___________________________________________________________________________*/
   void send_gohome()
   {
@@ -227,6 +235,65 @@ private:
         rclcpp::shutdown(); };
 
     move_checker_board_client_->async_send_goal(goal, options);
+  }
+/*___________________________________________________________________________*/
+  void send_gripper_move()
+  {
+    if (!gripper_move_client_->wait_for_action_server(std::chrono::seconds(5))) {
+      RCLCPP_ERROR(get_logger(), "GripperMove server not available");
+      rclcpp::shutdown();
+      return;
+    }
+
+    GripperMove::Goal goal;
+    goal.opening = 0.03;              // mở 5cm
+    goal.velocity_scale = 0.5;
+    goal.acceleration_scale = 0.5;
+
+    rclcpp_action::Client<GripperMove>::SendGoalOptions options;
+
+    options.goal_response_callback =
+      [this](const GripperMoveGoalHandle::SharedPtr & handle)
+      {
+        if (!handle) {
+          RCLCPP_ERROR(get_logger(), "GripperMove goal rejected");
+        } else {
+          RCLCPP_INFO(get_logger(), "GripperMove goal accepted");
+        }
+      };
+
+    options.feedback_callback =
+      [this](
+        GripperMoveGoalHandle::SharedPtr,
+        const std::shared_ptr<const GripperMove::Feedback> feedback)
+      {
+        RCLCPP_INFO(
+          get_logger(),
+          "[GripperMove feedback] %s | target_opening=%.4f",
+          feedback->stage.c_str(),
+          feedback->target_opening);
+      };
+
+    options.result_callback =
+      [this](const GripperMoveGoalHandle::WrappedResult & result)
+      {
+        RCLCPP_INFO(
+          get_logger(),
+          "GripperMove result code = %d",
+          static_cast<int>(result.code));
+
+        if (result.result) {
+          RCLCPP_INFO(
+            get_logger(),
+            "success: %s | message: %s",
+            result.result->success ? "true" : "false",
+            result.result->message.c_str());
+        }
+
+        rclcpp::shutdown();
+      };
+
+    gripper_move_client_->async_send_goal(goal, options);
   }
 
 };

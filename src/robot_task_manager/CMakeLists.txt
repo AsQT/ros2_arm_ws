@@ -26,6 +26,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/MoveToPose.action"
   "action/MoveToPoseCartesian.action"
   "action/CheckerBoard.action"
+  "action/GripperMove.action"
   DEPENDENCIES geometry_msgs
 )
 
@@ -44,6 +45,20 @@ ament_target_dependencies(
   moveit_visual_tools
 )
 target_link_libraries(moveit_executor Eigen3::Eigen)
+
+add_library(gripper_executor SHARED
+  src/gripper_executor.cpp)
+
+ament_target_dependencies(
+  gripper_executor
+  rclcpp
+  geometry_msgs
+  moveit_ros_planning_interface
+  moveit_core
+  moveit_msgs
+
+)
+target_link_libraries(gripper_executor Eigen3::Eigen)
 
 ## action 
 add_executable(gohome_server src/gohome_server.cpp)
@@ -104,6 +119,18 @@ target_link_libraries(checker_board_server
   "${cpp_typesupport_target}"
 )
 
+add_executable(gripper_action_server src/gripper_action_server.cpp)
+ament_target_dependencies(gripper_action_server
+  rclcpp
+  rclcpp_action
+  moveit_ros_planning_interface
+)
+target_link_libraries(gripper_action_server
+  gripper_executor
+)
+rosidl_target_interfaces(gripper_action_server
+  ${PROJECT_NAME} "rosidl_typesupport_cpp"
+)
 #_________________________________________________________________
 add_executable(task_manager_client src/task_manager_client.cpp)
 ament_target_dependencies(task_manager_client
@@ -118,6 +145,7 @@ target_link_libraries(task_manager_client
 
 install(TARGETS
   moveit_executor
+  gripper_executor
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -128,6 +156,7 @@ install(TARGETS
   move_to_pose_server
   move_pose_cartesian_server
   checker_board_server
+  gripper_action_server
 
   task_manager_client
 

@@ -1,0 +1,9 @@
+float64 opening
+float64 velocity_scale
+float64 acceleration_scale
+---
+bool success
+string message
+---
+float64 target_opening
+string stage

@@ -1,0 +1,12 @@
+# Goal
+float64 position    # độ mở (m), ví dụ 0.0 → đóng, 0.05 → mở max
+
+---
+# Result
+bool success
+string message
+
+---
+# Feedback
+float64 current_position
+string state

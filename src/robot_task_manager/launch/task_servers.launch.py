@@ -21,6 +21,11 @@ def generate_launch_description():
         {"home_target": "home"},
         {"base_frame": "world"},
     ]
+    gripper_parameters = [
+        moveit_config.to_dict(),
+        {"planning_group": "gripper"},
+        {"base_frame": "link_6"},
+    ]
 
     move_group_node = Node(
         package="moveit_ros_move_group",
@@ -61,10 +66,19 @@ def generate_launch_description():
         parameters=common_parameters,
     )
 
+    mode_gripper = Node(
+        package="robot_task_manager",
+        executable="gripper_action_server",
+        name="gripper_action_server",
+        output="screen",
+        parameters=gripper_parameters,
+    )
+
     return LaunchDescription([
         #move_group_node,
-        gohome_server,
+        #gohome_server,
         move_to_pose_server,
         move_pose_cartesian_server,
         checker_board,
+        mode_gripper,
     ])
