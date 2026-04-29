@@ -13,7 +13,7 @@
 /* Các hàm 
 parse_csv_ints
 parse_csv_doubles
-on_init
+on_ionnit
 on_configure
 on_activate
 on_cleanup
@@ -317,9 +317,6 @@ hardware_interface::return_type RobotSystemHardware::read(
       // driver(rad) -> ROS(rad): áp sign + offset (đúng chiều với write() của bạn)
       const double rad_ros = rad_driver * direction_sign_[i] + rad_offset_[i];
 
-  
-
-      // Sanity check để né “rác” khi frame bị lỗi
       if (std::fabs(rad_ros) > 10.0) { // ~572°
         if (auto clk = get_clock()) {
           RCLCPP_WARN_THROTTLE(get_logger(), *clk, 2000,
@@ -350,88 +347,6 @@ hardware_interface::return_type RobotSystemHardware::read(
   }
 }
  
-
-//##################################### Read function old #######################################################
-/*______________________________________________
-hardware_interface::return_type RobotSystemHardware::read(
-  const rclcpp::Time &, const rclcpp::Duration &)
-{
-  if (!connected_) return hardware_interface::return_type::ERROR;
-
-  const size_t n = hw_pos_.size();
-
-  try {
-    const auto [pos_raw, vel_raw] = client_.get_pos_all(pos_timeout_s_); // cmd doc vi tri
-
-    if (pos_raw.size() != n || vel_raw.size() != n) {
-      if (auto clk = get_clock()) {
-        RCLCPP_WARN_THROTTLE(
-          get_logger(), *clk, 2000,
-          "read get_pos_all size mismatch: pos=%zu vel=%zu expected=%zu (keeping last state)",
-          pos_raw.size(), vel_raw.size(), n);
-      } else {
-        RCLCPP_WARN(
-          get_logger(),
-          "read get_pos_all size mismatch: pos=%zu vel=%zu expected=%zu (keeping last state)",
-          pos_raw.size(), vel_raw.size(), n);
-      }
-
-      consec_read_fail_++;
-      return (consec_read_fail_ >= max_consec_read_fail_)
-        ? hardware_interface::return_type::ERROR
-        : hardware_interface::return_type::OK;
-    }
-
-    // OK -> reset fail counter
-    consec_read_fail_ = 0;
-
-    for (size_t i = 0; i < n; ++i) {
-      // ====== FIX ĐƠN VỊ ======
-      // pos_raw/vel_raw đang là milli-degree (deg*1000)
-      const double pos_deg   = pos_raw[i] / 1000.0;
-      const double vel_deg_s = vel_raw[i] / 1000.0;
-
-      // deg -> rad (driver space)
-      const double rad_driver   = deg2rad(pos_deg);
-      const double rad_s_driver = deg2rad(vel_deg_s);
-
-      // driver(rad) -> ROS(rad): áp sign + offset (đúng chiều với write() của bạn)
-      const double rad_ros = rad_driver * direction_sign_[i] + rad_offset_[i];
-
-  
-
-      // Sanity check để né “rác” khi frame bị lỗi
-      if (std::fabs(rad_ros) > 10.0) { // ~572°
-        if (auto clk = get_clock()) {
-          RCLCPP_WARN_THROTTLE(get_logger(), *clk, 2000,
-            "read: unreasonable joint[%zu]=%f rad, keeping last value", i, rad_ros);
-        }
-        continue; // giữ hw_pos_[i] cũ
-      }
-
-      hw_pos_[i] = rad_ros;
-
-      // Velocity: ROS nên có dấu theo chiều joint (không fabs)
-      hw_vel_[i] = rad_s_driver * direction_sign_[i];
-    }
-
-    return hardware_interface::return_type::OK;
-
-  } catch (const std::exception & e) {
-    if (auto clk = get_clock()) {
-      RCLCPP_WARN_THROTTLE(get_logger(), *clk, 2000, "read get_pos_all failed: %s (keeping last state)", e.what());
-    } else {
-      RCLCPP_WARN(get_logger(), "read get_pos_all failed: %s (keeping last state)", e.what());
-    }
-
-    consec_read_fail_++;
-    return (consec_read_fail_ >= max_consec_read_fail_)
-      ? hardware_interface::return_type::ERROR
-      : hardware_interface::return_type::OK;
-  }
-}
-//#####################################################################################################################
-________________________________________*/
 hardware_interface::return_type RobotSystemHardware::write(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
@@ -488,9 +403,6 @@ hardware_interface::return_type RobotSystemHardware::write(
   auto vel_deg_s_for = [&](size_t i) -> double {
     double v = default_vel_deg_s_;
     if (vel_ok) v = std::fabs(rad2deg(cmd_vel_[i]));  // rad/s -> deg/s
-    //if (v < 1e-6) v = default_vel_deg_s_;
-    //if (v < 0.001) v = 0.001;
-    //if (v > 89.999) v = 89.999;
     return v;
   };
 

@@ -39,7 +39,7 @@ public:
   int warmup_cycles_{0};                  // đếm số chu kỳ bỏ qua write
   int warmup_cycles_cfg_{30};             // ví dụ bỏ qua 30 chu kỳ đầu (tùy bạn)
 
-  double write_period_s_{0.02};           // 50Hz (0.02s). Dù update_rate cao vẫn chỉ gửi 50Hz
+  double write_period_s_{0.1};           // 50Hz (0.02s). Dù update_rate cao vẫn chỉ gửi 50Hz
   double cmd_eps_rad_{1e-4};              // ngưỡng coi như command không đổi
 
   int consec_read_fail_{0};

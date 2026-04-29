@@ -25,11 +25,12 @@ def generate_launch_description():
                         robot_moveit_pkg,
                         "launch",
                         "moveit.launch.py",   )    ),
-                launch_arguments={ "use_sim_time": "true",  }.items(),   )
+                launch_arguments={ "use_sim_time": "True",  }.items(),   )
+    
 
     return LaunchDescription(
         [
             gazebo,
             TimerAction(
                 period=4.0,
-                actions=[moveit],    ),     ]    )
+                actions=[moveit, ],    ),     ]    )

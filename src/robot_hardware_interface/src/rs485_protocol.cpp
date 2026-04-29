@@ -126,6 +126,7 @@ void SerialPort::flush_input() {
 }
 /*__________________________________________________________________________________*/
 void SerialPort::write_all(const uint8_t* data, size_t len) {
+  
   if (fd_ < 0) throw std::runtime_error("Serial not open");
   size_t off = 0;
   while (off < len) {
@@ -179,6 +180,10 @@ void Rs485Client::connect(
                           double timeout_s) {
   std::lock_guard<std::mutex> lk(io_mtx_);
   sp_.open(port, baudrate, timeout_s);
+
+  //buf_pos_deg_.assign(8, 0.0);
+  //buf_vel_deg_s_.assign(8, 0.0);
+  //buf_flag_s_.assign(8, 0);
 }
 /*__________________________________________________________________________________*/
 void Rs485Client::disconnect() {
@@ -376,7 +381,7 @@ std::optional<std::vector<uint8_t>> Rs485Client::exchange(
                                                           bool wait_reply,
                                                           std::optional<uint8_t> expected_cmd,
                                                           double timeout_s) {
-
+  //rs_busy_ = true ;
   std::lock_guard<std::mutex> lk(io_mtx_);
   if (!sp_.is_open()) throw std::runtime_error("Serial not connected");
 
@@ -389,6 +394,7 @@ std::optional<std::vector<uint8_t>> Rs485Client::exchange(
 
   uint8_t exp = expected_cmd.has_value() ? expected_cmd.value() : cmd;
   auto fr = recv_frame(exp, timeout_s);
+  //rs_busy_ = false ;
   return fr.payload;
 }
 /*__________________________________________________________________________________*/
@@ -465,12 +471,29 @@ std::tuple<
             >
 Rs485Client::get_all_state(double timeout_s)
 {
-  auto rx = exchange(cmd::STATUS_ALL, {}, true, cmd::STATUS_ALL, timeout_s);
-  if (!rx.has_value()) throw std::runtime_error("No reply for STATUS_ALL");
-
   constexpr size_t AXES = 8;
   constexpr size_t BYTES_PER_AXIS = 10; // 4 pos + 4 vel +2
   const size_t need_bytes = AXES * BYTES_PER_AXIS; // 64
+  std::vector<double> pos_deg(AXES, 0.0);
+  std::vector<double> vel_deg_s(AXES, 0.0);
+  std::vector<uint16_t> flags(AXES, 0);
+  /*
+  if(rs_busy_)
+  {
+    for (size_t i = 0; i < AXES; ++i) {
+        pos_deg[i]    = buf_pos_deg_[i];
+        vel_deg_s[i]  = buf_vel_deg_s_[i] ;
+        flags[i]      = buf_flag_s_[i];
+      }
+    throw std::runtime_error("Serial busy");
+    return {pos_deg, vel_deg_s, flags};
+  }
+  */
+
+  auto rx = exchange(cmd::STATUS_ALL, {}, true, cmd::STATUS_ALL, timeout_s);
+  if (!rx.has_value()) throw std::runtime_error("No reply for STATUS_ALL");
+
+
 
   size_t offset = 0;
   if (rx->size() == need_bytes) {
@@ -485,10 +508,6 @@ Rs485Client::get_all_state(double timeout_s)
     throw std::runtime_error("STATUS_ALL payload truncated");
   }
 
-  std::vector<double> pos_deg(AXES, 0.0);
-  std::vector<double> vel_deg_s(AXES, 0.0);
-  std::vector<uint16_t> flags(AXES, 0);
-
   for (size_t i = 0; i < AXES; ++i) {
     const uint8_t* base = rx->data() + offset + i * BYTES_PER_AXIS;  // i*8
 
@@ -496,9 +515,13 @@ Rs485Client::get_all_state(double timeout_s)
     const uint32_t vel_u32 = unpack_u32_le(base + 4);
     const uint16_t flag_i   = unpack_u16_le(base + 8);
 
-    pos_deg[i]   = static_cast<double>(pos_i32) / 1000.0; // mdeg -> deg
-    vel_deg_s[i] = static_cast<double>(vel_u32) / 1000.0; // mdeg/s -> deg/s
-    flags[i] =  flag_i;
+    pos_deg[i]    = static_cast<double>(pos_i32) / 1000.0; // mdeg -> deg
+    vel_deg_s[i]  = static_cast<double>(vel_u32) / 1000.0; // mdeg/s -> deg/s
+    flags[i]      =  flag_i;
+
+    //buf_pos_deg_[i]    = pos_deg[i];
+    //buf_vel_deg_s_[i]  = vel_deg_s[i] ;
+    //buf_flag_s_[i]     = flags[i] ;
   }
 
   return {pos_deg, vel_deg_s, flags};
@@ -549,13 +572,14 @@ Rs485Client::get_all_state(double timeout_s)
     return out;
   }
 // --- run_all ---
-  void Rs485Client::run_all(const std::vector<double>& pos6_deg, const std::vector<double>& vel6_deg_s) {
+  void Rs485Client::run_all(const std::vector<double>& pos6_deg, const std::vector<double>& vel6_deg_s) 
+  {
     if (pos6_deg.size() != 8 || vel6_deg_s.size() != 8) throw std::runtime_error("run_all needs 8 pos + 8 vel");
     std::vector<uint8_t> payload;
     payload.reserve(8 * (4 + 4));
     for (int i = 0; i < 7; ++i) {
-      double p = clamp(pos6_deg[i], -90.0, 90.0);
-      double v = clamp(vel6_deg_s[i], 5.0, 89.999);
+      double p = clamp(pos6_deg[i], -180.0, 180.0);
+      double v = clamp(vel6_deg_s[i], 0.0, 50.999);
       int32_t pi = (int32_t)llround(p * 1000.0);
       uint32_t vu = (uint32_t)llround(v * 1000.0);
       auto pb = pack_i32_le(pi);

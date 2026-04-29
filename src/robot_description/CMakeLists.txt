@@ -27,6 +27,7 @@ install(DIRECTORY
 install(PROGRAMS
   gazebo/random_wood_blocks.py
   gazebo/wood_blocks_3.py
+  gazebo/checker_board.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

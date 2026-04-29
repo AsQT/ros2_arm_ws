@@ -29,7 +29,8 @@ def generate_launch_description():
                         robot_moveit_pkg,
                         "launch",
                         "moveit.launch.py",   )    ),
-                launch_arguments={ "use_mock": "false",}.items(),   )
+                launch_arguments={ "use_mock": "false",
+                                   "use_sim_time": "false",}.items(),   )
 
     return LaunchDescription(
         [

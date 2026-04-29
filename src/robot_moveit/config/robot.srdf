@@ -38,8 +38,7 @@
         <joint name="joint_5" value="1.1368"/>
         <joint name="joint_6" value="1.5757"/>
     </group_state>
-<!-- End Effector  -->
-    <end_effector group="gripper" name="gripper" parent_group="arm" parent_link="tcp_link"/>
+
 
 
 <!--VIRTUAL JOINT: Purpose: 
@@ -47,6 +46,8 @@
     between a robot link and an external frame of reference 
     (considered fixed with respect to the robot)-->
     <virtual_joint name="visual_joint" type="fixed" parent_frame="world" child_link="base_link"/>
+<!-- End Effector  -->
+    <end_effector group="gripper" name="gripper" parent_group="arm" parent_link="tcp_link"/>
 
 <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="base_link" link2="link_1" reason="Adjacent"/>

@@ -105,7 +105,12 @@ namespace robot_hardware_interface {
     static int32_t unpack_i32_le(const uint8_t* p);
     static uint32_t unpack_u32_le(const uint8_t* p);
     static uint16_t unpack_u16_le(const uint8_t* p);
-
+    /*________________________________
+    std::vector<double> buf_pos_deg_;
+    std::vector<double> buf_vel_deg_s_;
+    std::vector<uint16_t> buf_flag_s_;
+    bool rs_busy_ = false;
+    ________________________________*/
     static double clamp(double v, double lo, double hi);
 
     mutable std::mutex io_mtx_;
