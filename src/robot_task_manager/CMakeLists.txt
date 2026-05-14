@@ -26,7 +26,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/MoveToPose.action"
   "action/MoveToPoseCartesian.action"
   "action/CheckerBoard.action"
-  "action/GripperMove.action"
+  "action/MoveGripper.action"
   DEPENDENCIES geometry_msgs
 )
 
@@ -119,16 +119,16 @@ target_link_libraries(checker_board_server
   "${cpp_typesupport_target}"
 )
 
-add_executable(gripper_action_server src/gripper_action_server.cpp)
-ament_target_dependencies(gripper_action_server
+add_executable(move_gripper_server src/move_gripper_server.cpp)
+ament_target_dependencies(move_gripper_server
   rclcpp
   rclcpp_action
   moveit_ros_planning_interface
 )
-target_link_libraries(gripper_action_server
+target_link_libraries(move_gripper_server
   gripper_executor
 )
-rosidl_target_interfaces(gripper_action_server
+rosidl_target_interfaces(move_gripper_server
   ${PROJECT_NAME} "rosidl_typesupport_cpp"
 )
 #_________________________________________________________________
@@ -156,7 +156,7 @@ install(TARGETS
   move_to_pose_server
   move_pose_cartesian_server
   checker_board_server
-  gripper_action_server
+  move_gripper_server
 
   task_manager_client
 

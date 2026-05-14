@@ -1,7 +1,5 @@
 geometry_msgs/Pose target_pose
 float64 velocity_scale
-#float64 absolute_axis_tolerance
-#loat64 orientation_weight
 
 ---
 bool success

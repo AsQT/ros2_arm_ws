@@ -68,8 +68,8 @@ def generate_launch_description():
 
     mode_gripper = Node(
         package="robot_task_manager",
-        executable="gripper_action_server",
-        name="gripper_action_server",
+        executable="move_gripper_server",
+        name="move_gripper_server",
         output="screen",
         parameters=gripper_parameters,
     )

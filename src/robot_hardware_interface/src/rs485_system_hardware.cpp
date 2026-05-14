@@ -411,8 +411,16 @@ hardware_interface::return_type RobotSystemHardware::write(
 
   for (size_t i = 0; i < AXES; ++i) {
     const double rad_driver = (cmd_pos_[i] - rad_offset_[i]) * direction_sign_[i];
-    pos_deg[i] = rad2deg(rad_driver);
-    vel_deg_s[i] = vel_deg_s_for(i);
+    if(i <6)
+    {
+      pos_deg[i] = rad2deg(rad_driver);
+      vel_deg_s[i] = vel_deg_s_for(i);
+    } else
+    {
+      pos_deg[i] = rad_driver;
+      vel_deg_s[i] = vel_deg_s_for(i);
+    }
+
   }
 
   try {

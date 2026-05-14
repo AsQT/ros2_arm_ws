@@ -41,3 +41,10 @@ ros2 action send_goal /move_checker_board robot_task_manager/action/CheckerBoard
 x  0.25 to 0.55
 y -0.45 to 0.45
 z  0.05 to 0.2
+```bash
+ros2 action send_goal /move_gripper  robot_task_manager/action/MoveGripper "{ position: 0.03 }" --feedback
+```
+
+ros2 interface show robot_task_manager/action/MoveGripper
+ros2 action list -t | grep gripper
+ros2 topic echo /joint_states

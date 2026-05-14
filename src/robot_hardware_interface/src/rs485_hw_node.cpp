@@ -653,7 +653,6 @@ private:
 
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_joint_states_;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_connected_;
-  //rclcpp::Publisher<std_msgs::msg::UInt16MultiArray>::SharedPtr pub_flags_;
   rclcpp::Publisher<robot_hardware_interface::msg::FlagStatus>::SharedPtr pub_status_flag_;
 
 

@@ -8,5 +8,5 @@ string message
 
 ---
 # Feedback
-float64 current_position
-string state
+float32 progress
+string stage

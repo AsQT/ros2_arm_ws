@@ -578,8 +578,8 @@ Rs485Client::get_all_state(double timeout_s)
     std::vector<uint8_t> payload;
     payload.reserve(8 * (4 + 4));
     for (int i = 0; i < 7; ++i) {
-      double p = clamp(pos6_deg[i], -180.0, 180.0);
-      double v = clamp(vel6_deg_s[i], 0.0, 50.999);
+      double p = clamp(pos6_deg[i], -280.0, 280.0);
+      double v = clamp(vel6_deg_s[i], 5.0, 60.9);
       int32_t pi = (int32_t)llround(p * 1000.0);
       uint32_t vu = (uint32_t)llround(v * 1000.0);
       auto pb = pack_i32_le(pi);
