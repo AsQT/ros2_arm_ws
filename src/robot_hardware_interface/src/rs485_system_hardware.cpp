@@ -273,7 +273,7 @@ std::vector<hardware_interface::CommandInterface> RobotSystemHardware::export_co
   return out;
 }
 //#####################################################################################################################
-
+/*__________________________________________________________________________________*/
 hardware_interface::return_type RobotSystemHardware::read(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
@@ -311,34 +311,30 @@ hardware_interface::return_type RobotSystemHardware::read(
       // pos_raw/vel_raw đang là milli-degree (deg*1000)
       const double pos_deg   = pos_raw[i];
       const double vel_deg_s = vel_raw[i];
-
-      // deg -> rad (driver space)
-      if(i < 6)
+      if (i<6)
       {
+        // deg -> rad (driver space)
         const double rad_driver   = deg2rad(pos_deg);
         const double rad_s_driver = deg2rad(vel_deg_s);
 
-      // driver(rad) -> ROS(rad): áp sign + offset (đúng chiều với write() của bạn)
-      const double rad_ros = rad_driver * direction_sign_[i] + rad_offset_[i];
+        // driver(rad) -> ROS(rad): áp sign + offset (đúng chiều với write() của bạn)
+        const double rad_ros = rad_driver * direction_sign_[i] + rad_offset_[i];
 
-      if (std::fabs(rad_ros) > 10.0) { // ~572°
-        if (auto clk = get_clock()) {
-          RCLCPP_WARN_THROTTLE(get_logger(), *clk, 2000,
-            "read: unreasonable joint[%zu]=%f rad, keeping last value", i, rad_ros);
+        if (std::fabs(rad_ros) > 10.0) { // ~572°
+          if (auto clk = get_clock()) {
+            RCLCPP_WARN_THROTTLE(get_logger(), *clk, 2000,
+              "read: unreasonable joint[%zu]=%f rad, keeping last value", i, rad_ros);
+          }
+          continue; 
         }
-        continue; // giữ hw_pos_[i] cũ
-      }
-
-      hw_pos_[i] = rad_ros;
-
-      // Velocity: ROS nên có dấu theo chiều joint (không fabs)
-      hw_vel_[i] = rad_s_driver * direction_sign_[i];
-      }else{
+        hw_pos_[i] = rad_ros;
+        hw_vel_[i] = rad_s_driver * direction_sign_[i];
+      } else
+      {
         hw_pos_[i] = deg2met(pos_deg);
         hw_vel_[i] = deg2met(vel_deg_s);
+
       }
-
-
     }
 
     return hardware_interface::return_type::OK;
@@ -356,8 +352,6 @@ hardware_interface::return_type RobotSystemHardware::read(
       : hardware_interface::return_type::OK;
   }
 }
-/*__________________________________________________________________________________*/
-
  
 hardware_interface::return_type RobotSystemHardware::write(
   const rclcpp::Time &, const rclcpp::Duration &)

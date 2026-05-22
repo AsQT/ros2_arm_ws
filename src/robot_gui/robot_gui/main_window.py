@@ -28,8 +28,8 @@ class RobotMainWindow(QtWidgets.QMainWindow):
         tabs.addTab(self.tab_hw, "Hardware")
         # tabs.addTab(self.tab_tf, "TF")
         # tabs.addTab(self.tab_plan, "Planning")
-        tabs.addTab(self.tab_action, "Action")
-        tabs.addTab(self.tab_joint_monitor, "Joint Monitor")
+        # tabs.addTab(self.tab_action, "Action")
+        # tabs.addTab(self.tab_joint_monitor, "Joint Monitor")
 
    # def _copy_tf_to_target(self):
        # self.tab_tf.update_live_pose()

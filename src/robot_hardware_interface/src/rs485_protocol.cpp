@@ -423,46 +423,6 @@ double Rs485Client::get_pos_axis_deg(uint8_t axis_id, double timeout_s) {
   int32_t pos_i32 = unpack_i32_le(rx->data() + 2);// payload[2:6] for i32 pos*1000
   return static_cast<double>(pos_i32) / 1000.0;
 }
-// --- get_pos_all ---
-std::pair<std::vector<double>, std::vector<double>>
-Rs485Client::get_pos_all(double timeout_s)
-{
-  auto rx = exchange(cmd::GET_POS_ALL, {}, true, cmd::GET_POS_ALL, timeout_s);
-  if (!rx.has_value()) throw std::runtime_error("No reply for GET_POS_ALL");
-
-  constexpr size_t AXES = 8;
-  constexpr size_t BYTES_PER_AXIS = 8; // 4 pos + 4 vel
-  const size_t need_bytes = AXES * BYTES_PER_AXIS; // 64
-
-  size_t offset = 0;
-  if (rx->size() == need_bytes) {
-    offset = 0;
-  } else if (rx->size() >= need_bytes + 2) {
-    offset = 2; // nếu firmware có prefix 2 byte
-  } else {
-    throw std::runtime_error("GET_POS_ALL payload too short");
-  }
-
-  if (rx->size() < offset + need_bytes) {
-    throw std::runtime_error("GET_POS_ALL payload truncated");
-  }
-
-  std::vector<double> pos_deg(AXES, 0.0);
-  std::vector<double> vel_deg_s(AXES, 0.0);
-
-  for (size_t i = 0; i < AXES; ++i) {
-    const uint8_t* base = rx->data() + offset + i * BYTES_PER_AXIS;  // ✅ i*8
-
-    const int32_t  pos_i32 = unpack_i32_le(base + 0);
-    const uint32_t vel_u32 = unpack_u32_le(base + 4);
-
-    pos_deg[i]   = static_cast<double>(pos_i32) / 1000.0; // mdeg -> deg
-    vel_deg_s[i] = static_cast<double>(vel_u32) / 1000.0; // mdeg/s -> deg/s
-  }
-
-  return {pos_deg, vel_deg_s};
-}
-
 // --- get_all_sate ---
 std::tuple<
             std::vector<double>, 
@@ -477,24 +437,9 @@ Rs485Client::get_all_state(double timeout_s)
   std::vector<double> pos_deg(AXES, 0.0);
   std::vector<double> vel_deg_s(AXES, 0.0);
   std::vector<uint16_t> flags(AXES, 0);
-  /*
-  if(rs_busy_)
-  {
-    for (size_t i = 0; i < AXES; ++i) {
-        pos_deg[i]    = buf_pos_deg_[i];
-        vel_deg_s[i]  = buf_vel_deg_s_[i] ;
-        flags[i]      = buf_flag_s_[i];
-      }
-    throw std::runtime_error("Serial busy");
-    return {pos_deg, vel_deg_s, flags};
-  }
-  */
 
   auto rx = exchange(cmd::STATUS_ALL, {}, true, cmd::STATUS_ALL, timeout_s);
   if (!rx.has_value()) throw std::runtime_error("No reply for STATUS_ALL");
-
-
-
   size_t offset = 0;
   if (rx->size() == need_bytes) {
     offset = 0;
@@ -512,21 +457,16 @@ Rs485Client::get_all_state(double timeout_s)
     const uint8_t* base = rx->data() + offset + i * BYTES_PER_AXIS;  // i*8
 
     const int32_t  pos_i32 = unpack_i32_le(base + 0);
-    const uint32_t vel_u32 = unpack_u32_le(base + 4);
+    const int32_t vel_u32 = unpack_u32_le(base + 4);
     const uint16_t flag_i   = unpack_u16_le(base + 8);
 
     pos_deg[i]    = static_cast<double>(pos_i32) / 1000.0; // mdeg -> deg
     vel_deg_s[i]  = static_cast<double>(vel_u32) / 1000.0; // mdeg/s -> deg/s
     flags[i]      =  flag_i;
-
-    //buf_pos_deg_[i]    = pos_deg[i];
-    //buf_vel_deg_s_[i]  = vel_deg_s[i] ;
-    //buf_flag_s_[i]     = flags[i] ;
   }
 
   return {pos_deg, vel_deg_s, flags};
 }
-
 // --- run_axis ---
   void Rs485Client::run_axis(uint8_t axis_id, double pos_deg, double vel_deg_s) {
     pos_deg = clamp(pos_deg, -90.0, 90.0);
@@ -558,19 +498,7 @@ Rs485Client::get_all_state(double timeout_s)
     payload.insert(payload.end(), v.begin(), v.end());
     exchange(cmd::JOG, payload, false);
   }
-// --- status_all ---
-  std::vector<uint32_t> Rs485Client::status_all(double timeout_s) {
-    auto rx = exchange(cmd::STATUS_ALL, {}, true, cmd::STATUS_ALL, timeout_s);
-    if (!rx.has_value()) return {};
-    const auto& pl = rx.value();
 
-    std::vector<uint32_t> out;
-    // payload is N * 4 bytes (u32 little-endian). Support 6+ axes (e.g., 7 axes with gripper).
-    const size_t n = pl.size() / 4;
-    out.reserve(n);
-    for (size_t i = 0; i < n; ++i) out.push_back(unpack_u32_le(pl.data() + i * 4));
-    return out;
-  }
 // --- run_all ---
   void Rs485Client::run_all(const std::vector<double>& pos6_deg, const std::vector<double>& vel6_deg_s) 
   {
@@ -579,9 +507,9 @@ Rs485Client::get_all_state(double timeout_s)
     payload.reserve(8 * (4 + 4));
     for (int i = 0; i < 7; ++i) {
       double p = clamp(pos6_deg[i], -280.0, 280.0);
-      double v = clamp(vel6_deg_s[i], 5.0, 60.9);
+      double v = clamp(vel6_deg_s[i], -100, 100);
       int32_t pi = (int32_t)llround(p * 1000.0);
-      uint32_t vu = (uint32_t)llround(v * 1000.0);
+      int32_t vu = (int32_t)llround(v * 1000.0);
       auto pb = pack_i32_le(pi);
       auto vb = pack_u32_le(vu);
       payload.insert(payload.end(), pb.begin(), pb.end());

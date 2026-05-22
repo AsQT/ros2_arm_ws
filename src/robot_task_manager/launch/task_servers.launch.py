@@ -74,6 +74,14 @@ def generate_launch_description():
         parameters=gripper_parameters,
     )
 
+    pickplace = Node(
+        package="robot_task_manager",
+        executable="pickplace_server",
+        name="pickplace_action_server",
+        output="screen",
+        parameters=common_parameters,
+    )
+
     return LaunchDescription([
         #move_group_node,
         #gohome_server,
@@ -81,4 +89,5 @@ def generate_launch_description():
         move_pose_cartesian_server,
         checker_board,
         mode_gripper,
+        pickplace,
     ])

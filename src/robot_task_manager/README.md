@@ -28,13 +28,14 @@ ros2 action send_goal /move_to_pose robot_task_manager/action/MoveToPose "{targe
 ros2 action send_goal /move_to_pose robot_task_manager/action/MoveToPose "{target_pose: {position: {x: 0.3, y: 0.0, z: 0.35}, orientation: {x: 1, y: 1, z: 0, w: 0}}, velocity_scale: 0.5}" --feedback
 ```
 ```bash
-ros2 action send_goal /move_to_pose_cartesian robot_task_manager/action/MoveToPoseCartesian "{target_pose: {position: {x: 0.3, y: 0.1, z: 0.35}, orientation: {x: 1.0, y: 1.0, z: 0.0, w: 0.0}}, velocity_scale: 0.5}" --feedback
+ros2 action send_goal /move_to_pose_cartesian robot_task_manager/action/MoveToPoseCartesian "{target_pose: {position: {x: 0.3, y: 0.1, z: 0.35}, orientation: {x: 1.0, y: 1.0, z: 0.0, w: 0.0}}, velocity_scale: 0.1}" --feedback
 ```
 
 ```bash
-ros2 action send_goal /move_to_pose_cartesian robot_task_manager/action/MoveToPoseCartesian "{target_pose: {position: {x: 0.4, y: 0.0, z: 0.25}, orientation: {x: 1.0, y: 1.0, z: 0.0, w: 0.0}}, velocity_scale: 0.5}" --feedback
+ros2 action send_goal /move_to_pose_cartesian robot_task_manager/action/MoveToPoseCartesian "{target_pose: {position: {x: 0.4, y: 0.0, z: 0.25}, orientation: {x: 1.0, y: 1.0, z: 0.0, w: 0.0}}, velocity_scale: 0.1}" --feedback
 
 
+ros2 action send_goal /move_checker_board robot_task_manager/action/CheckerBoard "{step: 0.1, velocity_scale: 0.1}" --feedback
 ```
 
 x  0.25 to 0.55
@@ -43,9 +44,13 @@ z  0.05 to 0.2
 ```bash
 ros2 action send_goal /move_gripper  robot_task_manager/action/MoveGripper "{ position: 0.03 }" --feedback
 ```
-
+```bash
 ros2 interface show robot_task_manager/action/MoveGripper
 ros2 action list -t | grep gripper
 ros2 topic echo /joint_states
+```
 
- ros2 run plotjuggler plotjuggler
+```bash
+ros2 action send_goal /pickplace robot_task_manager/action/PickPlace "{ pose_pick: { position: {x: 0.40, y: 0.10, z: 0.03}, orientation: {x: 1.0, y: 1.0, z: 0.0, w: 0.0} }, pose_place: { position: {x: 0.30, y: -0.10, z: 0.1}, orientation: {x: 1.0, y: 1.0, z: 0.0, w: 0.0} }, gripper: 0.025, velocity_scale: 0.2}" --feedback
+```
+ros2 run plotjuggler plotjuggler
