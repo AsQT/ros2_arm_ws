@@ -35,7 +35,6 @@ ros2 action send_goal /move_to_pose_cartesian robot_task_manager/action/MoveToPo
 ros2 action send_goal /move_to_pose_cartesian robot_task_manager/action/MoveToPoseCartesian "{target_pose: {position: {x: 0.4, y: 0.0, z: 0.25}, orientation: {x: 1.0, y: 1.0, z: 0.0, w: 0.0}}, velocity_scale: 0.5}" --feedback
 
 
-ros2 action send_goal /move_checker_board robot_task_manager/action/CheckerBoard "{step: 0.1, velocity_scale: 0.5}" --feedback
 ```
 
 x  0.25 to 0.55
@@ -48,3 +47,5 @@ ros2 action send_goal /move_gripper  robot_task_manager/action/MoveGripper "{ po
 ros2 interface show robot_task_manager/action/MoveGripper
 ros2 action list -t | grep gripper
 ros2 topic echo /joint_states
+
+ ros2 run plotjuggler plotjuggler

@@ -28,7 +28,9 @@ namespace robot_hardware_interface
 {
 
 static inline double deg2rad(double deg) { return deg * M_PI / 180.0; }
-static inline double rad2deg(double rad) { return rad * 180.0 / M_PI; }
+static inline double rad2deg(double rad) { return rad * 180.0 /M_PI ; }
+static inline double deg2met(double deg) { return deg /2; }
+static inline double met2deg(double rad) { return rad *2; }
 /*__________________________________________________________________________________*/
 std::vector<int> RobotSystemHardware::parse_csv_ints(const std::string & s)
 {
@@ -271,7 +273,7 @@ std::vector<hardware_interface::CommandInterface> RobotSystemHardware::export_co
   return out;
 }
 //#####################################################################################################################
-/*__________________________________________________________________________________*/
+
 hardware_interface::return_type RobotSystemHardware::read(
   const rclcpp::Time &, const rclcpp::Duration &)
 {
@@ -311,8 +313,10 @@ hardware_interface::return_type RobotSystemHardware::read(
       const double vel_deg_s = vel_raw[i];
 
       // deg -> rad (driver space)
-      const double rad_driver   = deg2rad(pos_deg);
-      const double rad_s_driver = deg2rad(vel_deg_s);
+      if(i < 6)
+      {
+        const double rad_driver   = deg2rad(pos_deg);
+        const double rad_s_driver = deg2rad(vel_deg_s);
 
       // driver(rad) -> ROS(rad): áp sign + offset (đúng chiều với write() của bạn)
       const double rad_ros = rad_driver * direction_sign_[i] + rad_offset_[i];
@@ -329,6 +333,12 @@ hardware_interface::return_type RobotSystemHardware::read(
 
       // Velocity: ROS nên có dấu theo chiều joint (không fabs)
       hw_vel_[i] = rad_s_driver * direction_sign_[i];
+      }else{
+        hw_pos_[i] = deg2met(pos_deg);
+        hw_vel_[i] = deg2met(vel_deg_s);
+      }
+
+
     }
 
     return hardware_interface::return_type::OK;
@@ -346,6 +356,8 @@ hardware_interface::return_type RobotSystemHardware::read(
       : hardware_interface::return_type::OK;
   }
 }
+/*__________________________________________________________________________________*/
+
  
 hardware_interface::return_type RobotSystemHardware::write(
   const rclcpp::Time &, const rclcpp::Duration &)
@@ -417,8 +429,8 @@ hardware_interface::return_type RobotSystemHardware::write(
       vel_deg_s[i] = vel_deg_s_for(i);
     } else
     {
-      pos_deg[i] = rad_driver;
-      vel_deg_s[i] = vel_deg_s_for(i);
+      pos_deg[i] = met2deg(rad_driver);
+      vel_deg_s[i] = met2deg(i);
     }
 
   }
