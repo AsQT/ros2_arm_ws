@@ -34,16 +34,6 @@ def generate_launch_description():
         },
     ]
 
-    move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
-        output="screen",
-        parameters=[
-            moveit_config.to_dict(),
-            {"use_sim_time": True},
-        ],
-    )
-
     gohome_server = Node(
         package="robot_task_manager",
         executable="gohome_server",
@@ -92,9 +82,7 @@ def generate_launch_description():
         parameters=common_moveit_params,
     )
 
-
     return LaunchDescription([
-        #move_group_node,
         gohome_server,
         move_to_pose_server,
         move_pose_cartesian_server,

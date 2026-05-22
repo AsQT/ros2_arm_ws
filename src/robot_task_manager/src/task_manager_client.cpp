@@ -255,9 +255,7 @@ private:
     }
 
     MoveGripper::Goal goal;
-    goal.position = 0.03;              // mở 3cm = 0.03 m
-    //goal.velocity_scale = 0.5;
-    //goal.acceleration_scale = 0.5;
+    goal.position = 0.03; 
 
     rclcpp_action::Client<MoveGripper>::SendGoalOptions options;
 
@@ -304,7 +302,6 @@ private:
     move_gripper_client_->async_send_goal(goal, options);
   }
 /*___________________________________________________________________________*/
-/*___________________________________________________________________________*/
   void send_pickplace()
   {
     if (!pickplace_client_->wait_for_action_server(std::chrono::seconds(5))) {
@@ -315,10 +312,7 @@ private:
 
     PickPlace::Goal goal;
 
-    // =========================
-    // PICK POSE
-    // =========================
-    // pose_pick thật: z = 0.25
+    // pose_pick : z = 0.25
     // pick_approach trong server sẽ là z = 0.25 + 0.10 = 0.35
     goal.pose_pick.position.x = 0.40;
     goal.pose_pick.position.y = 0.10;
@@ -330,10 +324,7 @@ private:
     goal.pose_pick.orientation.z = 0.0;
     goal.pose_pick.orientation.w = 0.0;
 
-    // =========================
     // PLACE POSE
-    // =========================
-    // pose_place thật: z = 0.25
     // place_approach trong server sẽ là z = 0.25 + 0.10 = 0.35
     goal.pose_place.position.x = 0.30;
     goal.pose_place.position.y = 0.00;
@@ -396,7 +387,6 @@ private:
 
     pickplace_client_->async_send_goal(goal, options);
   }
-
 };
 /*___________________________________________________________________________*/
 int main(int argc, char ** argv)

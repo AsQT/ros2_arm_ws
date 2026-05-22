@@ -460,7 +460,7 @@ private:
     publish_feedback(goal_handle, "Open gripper", 5.0f);
 
     if (!call_move_gripper(open_gripper_position_, error_msg)) {
-      //abort_goal(goal_handle, result, "Open gripper failed: " + error_msg);
+      abort_goal(goal_handle, result, "Open gripper failed: " + error_msg);
       return;
     }
 
@@ -496,7 +496,7 @@ private:
     publish_feedback(goal_handle, "Close gripper", 45.0f);
 
     if (!call_move_gripper(goal->gripper, error_msg)) {
-      //abort_goal(goal_handle, result, "Close gripper failed: " + error_msg);
+      abort_goal(goal_handle, result, "Close gripper failed: " + error_msg);
       return;
     }
 
@@ -544,7 +544,7 @@ private:
     publish_feedback(goal_handle, "Open gripper to release", 90.0f);
 
     if (!call_move_gripper(open_gripper_position_, error_msg)) {
-      //abort_goal(goal_handle, result, "Release object failed: " + error_msg);
+      abort_goal(goal_handle, result, "Release object failed: " + error_msg);
       return;
     }
 

@@ -1,12 +1,7 @@
-# Goal
-float64 position    # độ mở (m), ví dụ 0.0 → đóng, 0.05 → mở max
-
+float64 position 
 ---
-# Result
 bool success
 string message
-
 ---
-# Feedback
 float32 progress
 string stage

@@ -90,15 +90,14 @@ hardware_interface::CallbackReturn RobotSystemHardware::on_init(
     try { return std::stod(it->second); } catch (...) { return def; }
   };
 
-  port_ = get_s("port", port_);
-  baudrate_ = get_i("baudrate", baudrate_);
-  serial_timeout_s_ = get_d("serial_timeout_s", serial_timeout_s_);
-  pos_timeout_s_ = get_d("pos_timeout_s", pos_timeout_s_);
-  status_timeout_s_ = get_d("status_timeout_s", status_timeout_s_);
-  all_token_ = get_i("all_token", all_token_);
-  default_vel_deg_s_ = get_d("default_vel_deg_s", default_vel_deg_s_);
+  port_               = get_s("port", port_);
+  baudrate_           = get_i("baudrate", baudrate_);
+  serial_timeout_s_   = get_d("serial_timeout_s", serial_timeout_s_);
+  pos_timeout_s_      = get_d("pos_timeout_s", pos_timeout_s_);
+  status_timeout_s_   = get_d("status_timeout_s", status_timeout_s_);
+  all_token_          = get_i("all_token", all_token_);
+  default_vel_deg_s_  = get_d("default_vel_deg_s", default_vel_deg_s_);
 
-  // Optional protocol bytes (to match STM32 framing without recompiling)
   {
     ProtocolBytes p = client_.protocol();
     p.header1 = static_cast<uint8_t>(get_i("proto_header1", p.header1) & 0xFF);
@@ -130,11 +129,9 @@ hardware_interface::CallbackReturn RobotSystemHardware::on_init(
 
   hw_pos_.assign(n, 0.0);
   hw_vel_.assign(n, 0.0);
-  //hw_eff_.assign(n, 0.0);
 
   cmd_pos_.assign(n, 0.0);
   cmd_vel_.assign(n, 0.0);
-  //cmd_eff_.assign(n, 0.0);
 
   last_sent_pos_.assign(n, 0.0);
 
@@ -150,7 +147,6 @@ hardware_interface::CallbackReturn RobotSystemHardware::on_init(
       return hardware_interface::CallbackReturn::ERROR;
     }
   }
-
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 /*__________________________________________________________________________________*/
@@ -230,16 +226,6 @@ std::vector<hardware_interface::StateInterface> RobotSystemHardware::export_stat
       {
         out.emplace_back(j.name, hardware_interface::HW_IF_VELOCITY, &hw_vel_[i]);
       } 
-      /*
-      else if (si.name == hardware_interface::HW_IF_EFFORT) 
-      {
-        out.emplace_back(j.name, hardware_interface::HW_IF_EFFORT, &hw_eff_[i]);
-      } 
-      else 
-      {
-        out.emplace_back(j.name, si.name, &hw_eff_[i]);
-      }
-      */
     }
   }
   return out;
@@ -260,19 +246,10 @@ std::vector<hardware_interface::CommandInterface> RobotSystemHardware::export_co
       {
         out.emplace_back(j.name, hardware_interface::HW_IF_VELOCITY, &cmd_vel_[i]);
       } 
-      /*
-      else if (ci.name == hardware_interface::HW_IF_EFFORT) 
-      {
-        out.emplace_back(j.name, hardware_interface::HW_IF_EFFORT, &cmd_eff_[i]);
-      } else {
-        out.emplace_back(j.name, ci.name, &cmd_pos_[i]);
-      }
-      */
     }
   }
   return out;
 }
-//#####################################################################################################################
 /*__________________________________________________________________________________*/
 hardware_interface::return_type RobotSystemHardware::read(
   const rclcpp::Time &, const rclcpp::Duration &)
@@ -282,7 +259,7 @@ hardware_interface::return_type RobotSystemHardware::read(
   const size_t n = hw_pos_.size();
 
   try {
-    const auto [pos_raw, vel_raw, flag] = client_.get_all_state(pos_timeout_s_); // cmd doc vi tri
+    const auto [pos_raw, vel_raw, flag] = client_.get_all_state(pos_timeout_s_);
 
     if (pos_raw.size() != n || vel_raw.size() != n) {
       if (auto clk = get_clock()) {
@@ -302,25 +279,20 @@ hardware_interface::return_type RobotSystemHardware::read(
         ? hardware_interface::return_type::ERROR
         : hardware_interface::return_type::OK;
     }
-
     // OK -> reset fail counter
     consec_read_fail_ = 0;
 
     for (size_t i = 0; i < n; ++i) {
-      // ====== FIX ĐƠN VỊ ======
       // pos_raw/vel_raw đang là milli-degree (deg*1000)
       const double pos_deg   = pos_raw[i];
       const double vel_deg_s = vel_raw[i];
       if (i<6)
       {
-        // deg -> rad (driver space)
         const double rad_driver   = deg2rad(pos_deg);
         const double rad_s_driver = deg2rad(vel_deg_s);
-
-        // driver(rad) -> ROS(rad): áp sign + offset (đúng chiều với write() của bạn)
         const double rad_ros = rad_driver * direction_sign_[i] + rad_offset_[i];
 
-        if (std::fabs(rad_ros) > 10.0) { // ~572°
+        if (std::fabs(rad_ros) > 10.0) {
           if (auto clk = get_clock()) {
             RCLCPP_WARN_THROTTLE(get_logger(), *clk, 2000,
               "read: unreasonable joint[%zu]=%f rad, keeping last value", i, rad_ros);
@@ -333,7 +305,6 @@ hardware_interface::return_type RobotSystemHardware::read(
       {
         hw_pos_[i] = deg2met(pos_deg);
         hw_vel_[i] = deg2met(vel_deg_s);
-
       }
     }
 
@@ -359,19 +330,15 @@ hardware_interface::return_type RobotSystemHardware::write(
   if (!connected_) return hardware_interface::return_type::ERROR;
 
   constexpr size_t AXES = 8;
-
-  // Chưa sync state thì không gửi run_all (NHƯNG trả OK để khỏi deactivate)
   if (!state_synced_) {
     return hardware_interface::return_type::OK;
   }
 
-  // Warmup: bỏ qua vài chu kỳ đầu cho STM32 ổn định
   if (warmup_cycles_ > 0) {
     --warmup_cycles_;
     return hardware_interface::return_type::OK;
   }
 
-  // Rate-limit write (ví dụ 50Hz) dù controller_manager chạy 250Hz
   if (auto clk = get_clock()) {
     const auto now = clk->now();
     if ((now - last_write_time_).seconds() < write_period_s_) {
@@ -380,7 +347,6 @@ hardware_interface::return_type RobotSystemHardware::write(
     last_write_time_ = now;
   }
 
-  // Check size để tránh out-of-range + báo lỗi rõ ràng
   if (cmd_pos_.size() != AXES ||
       rad_offset_.size() != AXES ||
       direction_sign_.size() != AXES) {
@@ -391,7 +357,6 @@ hardware_interface::return_type RobotSystemHardware::write(
     return hardware_interface::return_type::ERROR;
   }
 
-  // Chỉ gửi nếu command thật sự đổi (giảm tải STM32 rất mạnh)
   if (last_sent_pos_.size() == AXES) {
     bool changed = false;
     for (size_t i = 0; i < AXES; ++i) {
@@ -403,9 +368,7 @@ hardware_interface::return_type RobotSystemHardware::write(
     if (!changed) return hardware_interface::return_type::OK;
   }
 
-  // cmd_vel_ có thể không đủ -> fallback default
   const bool vel_ok = (cmd_vel_.size() == AXES);
-
   auto vel_deg_s_for = [&](size_t i) -> double {
     double v = default_vel_deg_s_;
     if (vel_ok) v = std::fabs(rad2deg(cmd_vel_[i]));  // rad/s -> deg/s

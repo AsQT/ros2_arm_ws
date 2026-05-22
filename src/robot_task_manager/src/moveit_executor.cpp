@@ -93,7 +93,6 @@ bool MoveItExecutor::goNamedTarget(
   publishText("Planning to named target: " + target_name);
 
   moveit::planning_interface::MoveGroupInterface::Plan plan;
-  //const auto plan_result = move_group_->plan(plan);
 
   const auto plan_result = move_group_->execute(plan);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -172,8 +171,7 @@ bool MoveItExecutor::moveToPose(
   }
 
   publishText("Executing_pose_target");
-
-  //const auto exec_result = move_group_->execute(plan);
+  
   const auto exec_result = move_group_->execute(plan);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   move_group_->clearPoseTargets();

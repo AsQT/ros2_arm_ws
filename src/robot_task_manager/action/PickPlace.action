@@ -2,11 +2,9 @@ geometry_msgs/Pose pose_pick
 geometry_msgs/Pose pose_place
 float64 gripper
 float64 velocity_scale
-
 ---
 bool success
 string message
-
 ---
 string stage
 float32 progress

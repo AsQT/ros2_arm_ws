@@ -58,7 +58,7 @@ private:
   std::string planning_group_;
   std::string base_frame_;
 
-  double max_open_ = 0.05;
+  double max_open_ = 0.051;
   double min_open_ = 0.0;
 
   bool initialized_ = false;

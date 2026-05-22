@@ -27,13 +27,6 @@ def generate_launch_description():
         {"base_frame": "link_6"},
     ]
 
-    move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
-        output="screen",
-        parameters=[moveit_config.to_dict()],
-    )
-
     gohome_server = Node(
         package="robot_task_manager",                          
         executable="gohome_server",
@@ -83,7 +76,6 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        #move_group_node,
         #gohome_server,
         move_to_pose_server,
         move_pose_cartesian_server,

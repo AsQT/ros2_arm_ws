@@ -17,7 +17,6 @@ find_package(moveit_core REQUIRED)
 find_package(moveit_msgs REQUIRED)
 find_package(moveit_visual_tools REQUIRED)
 find_package(Eigen3 REQUIRED)
-#find_package(moveit_configs_utils REQUIRED)
 
 include_directories(include)
 
