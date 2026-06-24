@@ -28,7 +28,7 @@
     <collision>
       <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh filename  ="package://robot_description/meshes/base_link.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/base_link.dae" />
       </geometry>
     </collision>
   </link>
@@ -53,9 +53,9 @@
       <material   name  ="white"></material>
     </visual>
     <collision>
-      <origin xyz ="0 0 0" rpy  ="0 0 0" />
+      <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh filename  ="package://robot_description/meshes/link_1.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/link_1.dae" />
       </geometry>
     </collision>
   </link>
@@ -80,9 +80,9 @@
       <material     name  ="white"></material>
     </visual>
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh filename="package://robot_description/meshes/link_2.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/link_2.dae" />
       </geometry>
     </collision>
   </link>
@@ -107,9 +107,9 @@
       <material name="white"></material>
     </visual>
     <collision>
-      <origin  xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh  filename="package://robot_description/meshes/link_3.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/link_3.dae" />
       </geometry>
     </collision>
   </link>
@@ -134,9 +134,9 @@
       <material name="white"></material>
     </visual>
     <collision>
-      <origin  xyz="0 0 0"  rpy="0 0 0" />
+      <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh filename="package://robot_description/meshes/link_4.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/link_4.dae" />
       </geometry>
     </collision>
   </link>
@@ -161,9 +161,9 @@
       <material   name  ="white"></material>
     </visual>
     <collision>
-      <origin  xyz="0 0 0"  rpy="0 0 0" />
+      <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh filename  ="package://robot_description/meshes/link_5.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/link_5.dae" />
       </geometry>
     </collision>
   </link>
@@ -188,9 +188,9 @@
       <material   name  ="white"></material>
     </visual>
     <collision>
-      <origin  xyz  ="0 0 0"  rpy ="0 0 0" />
+      <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh filename  ="package://robot_description/meshes/link_6.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/link_6.dae" />
       </geometry>
     </collision>
   </link>
@@ -216,9 +216,9 @@
       <material   name  ="white"></material>
     </visual>
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh filename  ="package://robot_description/meshes/gripper_l.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/gripper_l.dae" />
       </geometry>
     </collision>
   </link>
@@ -243,9 +243,9 @@
       <material   name  ="white"></material>
     </visual>
     <collision>
-      <origin xyz ="0 0 0" rpy  ="0 0 0" />
+      <origin xyz ="0 0 0" rpy ="0 0 0" />
       <geometry>
-        <mesh  filename ="package://robot_description/meshes/gripper_r.stl" />
+        <mesh filename  ="package://robot_description/meshes/dae/gripper_r.dae" />
       </geometry>
     </collision>
   </link>
