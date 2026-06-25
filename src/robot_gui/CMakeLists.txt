@@ -11,36 +11,40 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/ui)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(robot_hardware_interface REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
 find_package(pluginlib REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Widgets Core Gui)
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
-add_executable(robot_gui_node
+set(SOURCES
   include/robot_gui/main_window.hpp
-  include/robot_gui/robot_gui_node.hpp
   include/robot_gui/rviz_panel.hpp
   src/main.cpp
   src/main_window.cpp
-  src/robot_gui_node.cpp
   src/rviz_panel.cpp
+  src/robot_gui_node.cpp
+  src/status_led.cpp
   ui/robot_gui.ui
 )
 
+add_executable(robot_gui_node ${SOURCES})
 target_include_directories(robot_gui_node PRIVATE
   include
   ${CMAKE_CURRENT_BINARY_DIR}
 )
-
 ament_target_dependencies(robot_gui_node
   rclcpp
-  sensor_msgs
   std_srvs
+  std_msgs
+  sensor_msgs
+  geometry_msgs
   trajectory_msgs
   robot_hardware_interface
   ament_index_cpp
@@ -48,15 +52,18 @@ ament_target_dependencies(robot_gui_node
   rviz_rendering
   pluginlib
 )
-
-target_link_libraries(robot_gui_node Qt5::Widgets Qt5::Core Qt5::Gui)
+target_link_libraries(robot_gui_node Qt5::Widgets)
 
 install(TARGETS robot_gui_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY launch ui config
+install(DIRECTORY launch ui
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
 ament_package()

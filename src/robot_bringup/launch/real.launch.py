@@ -10,14 +10,15 @@ def generate_launch_description():
     robot_moveit_pkg = get_package_share_directory("robot_moveit")
     robot_task_pkg = get_package_share_directory("robot_task_manager")
 
-    moveit = IncludeLaunchDescription(
+    moveit_gui = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(
                         robot_moveit_pkg,
                         "launch",
                         "moveit_gui.launch.py",   )    ),
                 launch_arguments={ "use_mock": "false",
-                                   "use_sim_time": "false",}.items(),   )
+                                   "use_sim_time": "false",
+                                   "start_controller_manager": "true",}.items(),   )
     task_serrver = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(
@@ -27,6 +28,6 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            moveit,
+            moveit_gui,
             task_serrver, 
               ]  )
